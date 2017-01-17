@@ -17,7 +17,9 @@ use Drupal\Core\Menu\MenuLinkInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
+use Drupal\node\Entity\NodeType;
 use Drupal\node\NodeTypeInterface;
+use Drupal\system\MenuInterface;
 use Drupal\system\Entity\Menu;
 use Drupal\node\NodeInterface;
 
@@ -111,6 +113,21 @@ function menu_ui_menu_delete(Menu $menu) {
   // Invalidate the block cache to update menu-based derivatives.
   if (\Drupal::moduleHandler()->moduleExists('block')) {
     \Drupal::service('plugin.manager.block')->clearCachedDefinitions();
+  }
+
+  if (\Drupal::moduleHandler()->moduleExists('node')) {
+    // Remove this menu from node types referencing the deleted menu.
+    $node_types = NodeType::loadMultiple();
+    foreach ($node_types as $node_type) {
+      /** @var \Drupal\node\NodeTypeInterface $node_type */
+      $menu_ids = $node_type->getThirdPartySetting('menu_ui', 'available_menus', []);
+      if (in_array($menu->id(), $menu_ids)) {
+        $menu_ids = array_diff($menu_ids, [$menu->id()]);
+        $node_type
+          ->setThirdPartySetting('menu_ui', 'available_menus', $menu_ids)
+          ->save();
+      }
+    }
   }
 }
 
@@ -272,12 +289,12 @@ function menu_ui_form_node_form_alter(&$form, FormStateInterface $form_state) {
   $node_type = $node->type->entity;
   /** @var \Drupal\Core\Menu\MenuParentFormSelectorInterface $menu_parent_selector */
   $menu_parent_selector = \Drupal::service('menu.parent_form_selector');
-  $menu_names = menu_ui_get_menus();
   $type_menus = $node_type->getThirdPartySetting('menu_ui', 'available_menus', array('main'));
-  $available_menus = array();
-  foreach ($type_menus as $menu) {
-    $available_menus[$menu] = $menu_names[$menu];
-  }
+  // Load menus via storage. If available menu ID's are invalid then menu load
+  // will fail silently.
+  $available_menus = array_map(function(MenuInterface $menu) {
+    return $menu->label();
+  }, Menu::loadMultiple($type_menus));
   if ($defaults['id']) {
     $default = $defaults['menu_name'] . ':' . $defaults['parent'];
   }

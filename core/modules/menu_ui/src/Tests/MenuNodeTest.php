@@ -2,9 +2,11 @@
 
 namespace Drupal\menu_ui\Tests;
 
+use Drupal\Core\Url;
 use Drupal\simpletest\WebTestBase;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
+use Drupal\system\Entity\Menu;
 use Drupal\node\Entity\Node;
 
 /**
@@ -22,6 +24,13 @@ class MenuNodeTest extends WebTestBase {
   protected $editor;
 
   /**
+   * A test content type.
+   *
+   * @var \Drupal\node\NodeTypeInterface
+   */
+  protected $contentType;
+
+  /**
    * Modules to enable.
    *
    * @var array
@@ -34,7 +43,7 @@ class MenuNodeTest extends WebTestBase {
     $this->drupalPlaceBlock('system_menu_block:main');
     $this->drupalPlaceBlock('page_title_block');
 
-    $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
+    $this->contentType = $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
 
     $this->editor = $this->drupalCreateUser(array(
       'access administration pages',
@@ -336,6 +345,48 @@ class MenuNodeTest extends WebTestBase {
     $url = $node->toUrl('edit-form', $options);
     $this->drupalGet($url);
     $this->assertFieldById('edit-menu-title', $translated_node_title);
+  }
+
+  /**
+   * Test the node form with invalid menu settings.
+   *
+   * Checks whether menu settings fields on node form are valid even if settings
+   * contain invalid menu_ui configuration.
+   */
+  function testNodeFormInvalidMenu() {
+    $menu = Menu::create([
+      'id' => $this->randomMachineName(),
+      'label' => $this->randomString(),
+    ]);
+    $menu->save();
+    // Non-existent menu ID:
+    $menu_id_decoy = $this->randomMachineName();
+
+    $menu_ids = [
+      $menu->id(),
+      $menu_id_decoy,
+    ];
+    $this->contentType
+      ->setThirdPartySetting('menu_ui', 'available_menus', $menu_ids)
+      ->save();
+
+    $menu_link_content = MenuLinkContent::create([
+      'title' => $this->randomString(),
+      'link' => ['uri' => 'route:<front>'],
+      'menu_name' => $menu->id(),
+    ]);
+    $menu_link_content->save();
+
+    $url = Url::fromRoute('node.add')
+      ->setRouteParameter('node_type', $this->contentType->id());
+    $this->drupalGet($url);
+
+    $select_id = 'edit-menu-menu-parent';
+    $options_count = $this->xpath('//select[@id="' . $select_id . '"]/option');
+    $this->assertEqual(2, count($options_count), 'There are two options in the menu parent select field.');
+    $this->assertOption($select_id, $menu->id() . ':');
+    $this->assertOption($select_id, $menu->id() . ':' . $menu_link_content->getPluginId());
+    $this->assertNoOption($select_id, $menu_id_decoy . ':');
   }
 
 }
