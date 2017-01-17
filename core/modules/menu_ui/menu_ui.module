@@ -289,12 +289,10 @@ function menu_ui_form_node_form_alter(&$form, FormStateInterface $form_state) {
   $node_type = $node->type->entity;
   /** @var \Drupal\Core\Menu\MenuParentFormSelectorInterface $menu_parent_selector */
   $menu_parent_selector = \Drupal::service('menu.parent_form_selector');
-  $type_menus = $node_type->getThirdPartySetting('menu_ui', 'available_menus', array('main'));
-  // Load menus via storage. If available menu ID's are invalid then menu load
-  // will fail silently.
-  $available_menus = array_map(function(MenuInterface $menu) {
-    return $menu->label();
-  }, Menu::loadMultiple($type_menus));
+  $menus_all = menu_ui_get_menus();
+  $available_menus = $node_type->getThirdPartySetting('menu_ui', 'available_menus', array('main'));
+  // Remove menus which do not exist.
+  $available_menus = array_intersect_key($menus_all, array_flip($available_menus));
   if ($defaults['id']) {
     $default = $defaults['menu_name'] . ':' . $defaults['parent'];
   }
