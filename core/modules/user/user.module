@@ -481,35 +481,32 @@ function template_preprocess_username(&$variables) {
     $variables['truncated'] = FALSE;
   }
   $variables['name'] = $name;
-  $variables['profile_access'] = \Drupal::currentUser()->hasPermission('access user profiles');
 
-  $external = FALSE;
   // Populate link path and attributes if appropriate.
-  if ($variables['uid'] && $variables['profile_access']) {
+  if ($variables['uid']) {
     // We are linking to a local user.
-    $variables['attributes']['title'] = t('View user profile.');
-    $variables['link_path'] = 'user/' . $variables['uid'];
+    /** @var \Drupal\user\UserInterface $account */
+    $variables['profile_access'] = $account->access('view');
+
+    // Do not create URL unless there is access.
+    if ($variables['profile_access']) {
+      $variables['attributes']['title'] = t('View user profile.');
+      $url = $account->toUrl();
+    }
   }
   elseif (!empty($account->homepage)) {
     // Like the 'class' attribute, the 'rel' attribute can hold a
     // space-separated set of values, so initialize it as an array to make it
     // easier for other preprocess functions to append to it.
     $variables['attributes']['rel'] = 'nofollow';
-    $variables['link_path'] = $account->homepage;
+    $url = Url::fromUri($account->homepage);
     $variables['homepage'] = $account->homepage;
-    $external = TRUE;
   }
-  // We have a link path, so we should generate a URL.
-  if (isset($variables['link_path'])) {
-    if ($external) {
-      $variables['attributes']['href'] = Url::fromUri($variables['link_path'], $variables['link_options'])
-        ->toString();
-    }
-    else {
-      $variables['attributes']['href'] = Url::fromRoute('entity.user.canonical', array(
-        'user' => $variables['uid'],
-      ))->toString();
-    }
+
+  if (isset($url)) {
+    $url->setOptions($variables['link_options']);
+    $variables['attributes']['href'] = $url->toString();
+    $variables['link_path'] = $url->toString();
   }
 }
 
