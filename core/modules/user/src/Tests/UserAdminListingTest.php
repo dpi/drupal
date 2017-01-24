@@ -63,7 +63,7 @@ class UserAdminListingTest extends WebTestBase {
     $result = $this->xpath('//table[contains(@class, "responsive-enabled")]/tbody/tr');
     $result_accounts = array();
     foreach ($result as $account) {
-      $name = (string) $account->td[0]->span;
+      $name = strip_tags($account->td[0]->asXML());
       $roles = array();
       if (isset($account->td[2]->div->ul)) {
         foreach ($account->td[2]->div->ul->li as $element) {

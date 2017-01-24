@@ -66,12 +66,12 @@ class UserAdminTest extends WebTestBase {
     $this->drupalGet('admin/people', array('query' => array('user' => $user_a->getUsername())));
     $result = $this->xpath('//table/tbody/tr');
     $this->assertEqual(1, count($result), 'Filter by username returned the right amount.');
-    $this->assertEqual($user_a->getUsername(), (string) $result[0]->td[1]->span, 'Filter by username returned the right user.');
+    $this->assertEqual($user_a->getUsername(), trim(strip_tags($result[0]->td[1]->asXML())), 'Filter by username returned the right user.');
 
     $this->drupalGet('admin/people', array('query' => array('user' => $user_a->getEmail())));
     $result = $this->xpath('//table/tbody/tr');
     $this->assertEqual(1, count($result), 'Filter by username returned the right amount.');
-    $this->assertEqual($user_a->getUsername(), (string) $result[0]->td[1]->span, 'Filter by username returned the right user.');
+    $this->assertEqual($user_a->getUsername(), trim(strip_tags($result[0]->td[1]->asXML())), 'Filter by username returned the right user.');
 
     // Filter the users by permission 'administer taxonomy'.
     $this->drupalGet('admin/people', array('query' => array('permission' => 'administer taxonomy')));

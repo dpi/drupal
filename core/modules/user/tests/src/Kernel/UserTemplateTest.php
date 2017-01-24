@@ -99,8 +99,7 @@ class UserTemplateTest extends KernelTestBase {
    * Tests an account without the "View user information" permission
    */
   function testUsernameTemplateNoPermissionNoUserLink() {
-    $anonymous = new AnonymousUserSession();
-    $this->currentUser->setAccount($anonymous);
+    $this->currentUser->setAccount(new AnonymousUserSession());
 
     $this->user->save();
     $url = $this->user->toUrl();
