@@ -112,6 +112,8 @@ class PrivateTempStore {
    *   The key of the data to store.
    * @param mixed $value
    *   The data to store.
+   * @throws TempStoreException
+   *   When failed to acquire lock to update item '$key'.
    */
   public function set($key, $value) {
     $key = $this->createkey($key);
@@ -161,6 +163,8 @@ class PrivateTempStore {
    * @return bool
    *   TRUE if the object was deleted or does not exist, FALSE if it exists but
    *   is not owned by $this->owner.
+   * @throws TempStoreException
+   *   When failed to acquire lock to update item '$key'.
    */
   public function delete($key) {
     $key = $this->createkey($key);
