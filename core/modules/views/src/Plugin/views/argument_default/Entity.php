@@ -5,8 +5,8 @@ namespace Drupal\views\Plugin\views\argument_default;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheableDependencyInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\views\Plugin\views\argument_default\ArgumentDefaultPluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -27,6 +27,13 @@ class Entity extends ArgumentDefaultPluginBase implements CacheableDependencyInt
   protected $routeMatch;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Constructs a new Entity instance.
    *
    * @param array $configuration
@@ -37,11 +44,14 @@ class Entity extends ArgumentDefaultPluginBase implements CacheableDependencyInt
    *   The plugin implementation definition.
    * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
    *   The route match.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, RouteMatchInterface $route_match) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, RouteMatchInterface $route_match, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->routeMatch = $route_match;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -52,7 +62,8 @@ class Entity extends ArgumentDefaultPluginBase implements CacheableDependencyInt
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('current_route_match')
+      $container->get('current_route_match'),
+      $container->get('entity_type.manager')
     );
   }
 
@@ -60,11 +71,11 @@ class Entity extends ArgumentDefaultPluginBase implements CacheableDependencyInt
    * {@inheritdoc}
    */
   public function getArgument() {
-    $route_name = $this->routeMatch->getRouteName();
-    if (strpos($route_name, 'entity.') === 0) {
-      list (, $entity_type_id, ) = explode('.', $route_name);
-      if (($entity = $this->routeMatch->getParameter($entity_type_id)) && $entity instanceof EntityInterface) {
-        return $entity->id();
+    if ($entity_type_id = $this->getEntityTypeId()) {
+      foreach ($this->routeMatch->getParameters() as $parameter) {
+        if ($parameter instanceof EntityInterface && $parameter->getEntityTypeId() == $entity_type_id) {
+          return $parameter->id();
+        }
       }
     }
   }
@@ -81,6 +92,26 @@ class Entity extends ArgumentDefaultPluginBase implements CacheableDependencyInt
    */
   public function getCacheContexts() {
     return ['url'];
+  }
+
+  /**
+   * Gets the entity type ID if the route belongs to an entity type.
+   *
+   * @return string|FALSE
+   *   The entity type ID for this route, or FALSE if the route is not for an
+   *   entity.
+   */
+  protected function getEntityTypeId() {
+    $route = $this->routeMatch->getRouteObject();
+    $current_path = $route->getPath();
+    foreach ($this->entityTypeManager->getDefinitions() as $entity_type_id => $definition) {
+      foreach ($definition->getLinkTemplates() as $path) {
+        if ($current_path === $path) {
+          return $entity_type_id;
+        }
+      }
+    }
+    return FALSE;
   }
 
 }
