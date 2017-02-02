@@ -71,6 +71,7 @@ class ContentTranslationLinkTagTest extends BrowserTestBase {
     $user = $this->drupalCreateUser([
       'view test entity',
       'view test entity translations',
+      'administer entity_test content',
     ]);
     $this->drupalLogin($user);
   }
@@ -145,6 +146,7 @@ class ContentTranslationLinkTagTest extends BrowserTestBase {
     $entity->save();
     $this->drupalGet($entity->toUrl('edit-form'));
 
+    $this->assertSession()->statusCodeEquals(200);
     $result = $this->xpath('//link[@rel="alternate" and @hreflang]');
     $this->assertFalse($result, 'No alternate link tag found.');
   }
