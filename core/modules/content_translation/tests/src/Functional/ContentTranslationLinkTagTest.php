@@ -112,7 +112,8 @@ class ContentTranslationLinkTagTest extends BrowserTestBase {
     /** @var \Drupal\Core\Url[] $urls */
     $urls = array_map(
       function ($langcode) use ($url_base) {
-        return (clone $url_base)
+        $url = clone $url_base;
+        return $url
           ->setOption('language', $this->languageManager->getLanguage($langcode))
           ->setAbsolute();
       }, $this->langcodes
