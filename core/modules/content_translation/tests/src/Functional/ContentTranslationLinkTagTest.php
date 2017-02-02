@@ -36,7 +36,7 @@ class ContentTranslationLinkTagTest extends BrowserTestBase {
   /**
    * The added languages.
    *
-   * @var array
+   * @var string[]
    */
   protected $langcodes;
 
@@ -49,9 +49,6 @@ class ContentTranslationLinkTagTest extends BrowserTestBase {
     $this->entityTypeManager = $this->container->get('entity_type.manager');
     $this->setupUsers();
     $this->setupLanguages();
-    // Rebuild the container so that the new languages are picked up by services
-    // that hold a list of languages.
-    $this->rebuildContainer();
   }
 
   /**
@@ -62,10 +59,9 @@ class ContentTranslationLinkTagTest extends BrowserTestBase {
     foreach ($this->langcodes as $langcode) {
       ConfigurableLanguage::createFromLangcode($langcode)->save();
     }
-    // Add default language.
-    $this->langcodes[] = $this->languageManager
-      ->getDefaultLanguage()
-      ->getId();
+    // Rebuild the container so that the new languages are picked up by services
+    // that hold a list of languages.
+    $this->rebuildContainer();
   }
 
   /**
@@ -89,9 +85,7 @@ class ContentTranslationLinkTagTest extends BrowserTestBase {
     $entity = EntityTestMul::create(['label' => $this->randomString()]);
 
     // Create translations for non default languages.
-    $default_langcode = $this->languageManager->getDefaultLanguage()->getId();
-    $non_default_langcodes = array_diff($this->langcodes, [$default_langcode]);
-    foreach ($non_default_langcodes as $langcode) {
+    foreach ($this->langcodes as $langcode) {
       $entity->addTranslation($langcode, ['label' => $this->randomString()]);
     }
     $entity->save();
@@ -107,25 +101,29 @@ class ContentTranslationLinkTagTest extends BrowserTestBase {
     $this->assertTrue($definition->hasLinkTemplate('canonical'), 'Canonical link template found for entity_test.');
 
     $entity = $this->createTranslatableEntity();
-    $url_base = $entity->toUrl('canonical');
+    $url_base = $entity->toUrl('canonical')
+      ->setAbsolute();
+
+    $langcodes_all = $this->langcodes;
+    $langcodes_all[] = $this->languageManager
+      ->getDefaultLanguage()
+      ->getId();
 
     /** @var \Drupal\Core\Url[] $urls */
     $urls = array_map(
       function ($langcode) use ($url_base) {
         $url = clone $url_base;
         return $url
-          ->setOption('language', $this->languageManager->getLanguage($langcode))
-          ->setAbsolute();
-      }, $this->langcodes
+          ->setOption('language', $this->languageManager->getLanguage($langcode));
+      },
+      array_combine($langcodes_all, $langcodes_all)
     );
 
-    // Ensure link tags are found in languages.
-    foreach ($urls as $url) {
-      $langcode = $url->getOption('language')->getId();
+    // Ensure link tags for all languages are found on each language variation
+    // page of an entity.
+    foreach ($urls as $langcode => $url) {
       $this->drupalGet($url);
-
-      foreach ($urls as $url_alternate) {
-        $langcode_alternate = $url_alternate->getOption('language')->getId();
+      foreach ($urls as $langcode_alternate => $url_alternate) {
         $args = [':href' => $url_alternate->toString(), ':hreflang' => $langcode_alternate];
         $links = $this->xpath('head/link[@rel = "alternate" and @href = :href and @hreflang = :hreflang]', $args);
         $message = sprintf('The "%s" translation has the correct alternate hreflang link for "%s": %s.', $langcode, $langcode_alternate, $url->toString());
