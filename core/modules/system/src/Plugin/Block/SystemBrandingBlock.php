@@ -88,8 +88,8 @@ class SystemBrandingBlock extends BlockBase implements ContainerFactoryPluginInt
 
     // Provide links to the theme settings pages if the user has access.
     $system_theme_settings_url = Url::fromRoute('system.theme_settings');
-    $block_theme_settings_url = (Url::fromRoute('system.theme_settings_theme'))
-      ->setRouteParameter('theme', $theme);
+    $block_theme_settings_url = Url::fromRoute('system.theme_settings_theme');
+    $block_theme_settings_url->setRouteParameter('theme', $theme);
     if ($system_theme_settings_url->access() && $block_theme_settings_url->access()) {
       $form['block_branding']['use_site_logo']['#description'] = $this->t('Defined on the <a href=":appearance">Appearance Settings</a> or <a href=":theme">Theme Settings</a> page.', [
         ':appearance' => $system_theme_settings_url->toString(),
