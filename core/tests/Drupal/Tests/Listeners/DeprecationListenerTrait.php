@@ -143,6 +143,9 @@ trait DeprecationListenerTrait {
       // higher
       'The "Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory" class is deprecated since symfony/psr-http-message-bridge 1.2, use PsrHttpFactory instead.',
       'The "psr7.http_message_factory" service relies on the deprecated "Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory" class. It should either be deprecated or its implementation upgraded.',
+      // Blocked by https://www.drupal.org/project/drupal/issues/2730631
+      'The "access_check.node.revision" service relies on the deprecated "Drupal\node\Access\NodeRevisionAccessCheck" class. It should either be deprecated or its implementation upgraded.',
+      'NodeRevisionAccessCheck is deprecated in Drupal 8.8.x and will be removed before Drupal 9.0.x. Use "_entity_access" requirement with relevant operation instead.',
     ];
   }
 
