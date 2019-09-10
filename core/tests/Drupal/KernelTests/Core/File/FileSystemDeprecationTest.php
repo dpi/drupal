@@ -46,7 +46,7 @@ class FileSystemDeprecationTest extends KernelTestBase {
    * @expectedDeprecation file_unmanaged_copy() is deprecated in Drupal 8.7.0 and will be removed before Drupal 9.0.0. Use \Drupal\Core\File\FileSystemInterface::copy(). See https://www.drupal.org/node/3006851.
    */
   public function testDeprecatedUnmanagedFileCopy() {
-    $source = file_directory_temp() . '/example.txt';
+    $source = \Drupal::service('file_system')->getTempDirectory() . '/example.txt';
     file_put_contents($source, 'example');
     $filename = file_unmanaged_copy($source);
     $this->assertEquals('public://example.txt', $filename);
@@ -67,6 +67,7 @@ class FileSystemDeprecationTest extends KernelTestBase {
   }
 
   /**
+   * @expectedDeprecation file_directory_temp() is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Use \Drupal\Core\File\FileSystemInterface::getTempDirectory() instead. See https://www.drupal.org/node/3039255
    * @expectedDeprecation file_unmanaged_move() is deprecated in Drupal 8.7.0 and will be removed before Drupal 9.0.0. Use \Drupal\Core\File\FileSystemInterface::move(). See https://www.drupal.org/node/3006851.
    */
   public function testDeprecatedUnmanagedFileMove() {
@@ -250,6 +251,20 @@ class FileSystemDeprecationTest extends KernelTestBase {
       FALSE,
     ];
     return $data;
+  }
+
+  /**
+   * @expectedDeprecation drupal_realpath() is deprecated in drupal:8.0.0 and will be removed in drupal:9.0.0. Use \Drupal\Core\File\FileSystemInterface::realpath(). See https://www.drupal.org/node/2418133.
+   */
+  public function testRealpath() {
+    $this->assertNotEmpty(drupal_realpath('public://'));
+  }
+
+  /**
+   * @expectedDeprecation file_scan_directory() is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Use \Drupal\Core\File\FileSystemInterface::scanDirectory() instead. See https://www.drupal.org/node/3038437
+   */
+  public function testDeprecatedScanDirectory() {
+    $this->assertNotNull(file_scan_directory('temporary://', '/^NONEXISTINGFILENAME/'));
   }
 
 }

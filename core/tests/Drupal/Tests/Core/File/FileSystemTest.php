@@ -24,14 +24,14 @@ class FileSystemTest extends UnitTestCase {
   /**
    * The file logger channel.
    *
-   * @var \Psr\Log\LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Psr\Log\LoggerInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $logger;
 
   /**
    * The stream wrapper manager.
    *
-   * @var \Drupal\Core\StreamWrapper\StreamWrapperInterface|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $streamWrapperManager;
 
@@ -162,7 +162,8 @@ class FileSystemTest extends UnitTestCase {
   public function testInvalidUTF8() {
     vfsStream::setup('dir');
     $filename = "a\xFFsdf\x80€" . '.txt';
-    $this->setExpectedException(FileException::class, "Invalid filename '$filename'");
+    $this->expectException(FileException::class);
+    $this->expectExceptionMessage("Invalid filename '$filename'");
     $this->fileSystem->createFilename($filename, 'vfs://dir');
   }
 
