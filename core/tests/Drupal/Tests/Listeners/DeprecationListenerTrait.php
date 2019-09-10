@@ -137,9 +137,11 @@ trait DeprecationListenerTrait {
       // higher
       'The "Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory" class is deprecated since symfony/psr-http-message-bridge 1.2, use PsrHttpFactory instead.',
       'The "psr7.http_message_factory" service relies on the deprecated "Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory" class. It should either be deprecated or its implementation upgraded.',
-      // Blocked by https://www.drupal.org/project/drupal/issues/2730631
-      'The "access_check.node.revision" service relies on the deprecated "Drupal\node\Access\NodeRevisionAccessCheck" class. It should either be deprecated or its implementation upgraded.',
-      'NodeRevisionAccessCheck is deprecated in Drupal 8.8.x and will be removed before Drupal 9.0.x. Use "_entity_access" requirement with relevant operation instead.',
+      // This deprecation comes from behat/mink-browserkit-driver when updating
+      // symfony/browser-kit to 4.3+.
+      'The "Symfony\Component\BrowserKit\Response::getStatus()" method is deprecated since Symfony 4.3, use getStatusCode() instead.',
+      'The "access_check.node.revision" service is deprecated. You should use the \'access_check.entity\' service instead. See https://www.drupal.org/project/drupal/issues/3043321',
+      'NodeRevisionAccessCheck is deprecated in Drupal 8.8.x. A removal date will be determined after https://www.drupal.org/project/drupal/issues/2730631 lands. Use "_entity_access" requirement with relevant operation instead.',
     ];
   }
 
