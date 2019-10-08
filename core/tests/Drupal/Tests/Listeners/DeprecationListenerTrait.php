@@ -140,8 +140,12 @@ trait DeprecationListenerTrait {
       // This deprecation comes from behat/mink-browserkit-driver when updating
       // symfony/browser-kit to 4.3+.
       'The "Symfony\Component\BrowserKit\Response::getStatus()" method is deprecated since Symfony 4.3, use getStatusCode() instead.',
+      // @todo Remove in https://www.drupal.org/project/drupal/issues/3082655
+      'Drupal\Tests\BrowserTestBase::$defaultTheme is required in drupal:9.0.0 when using an install profile that does not set a default theme. See https://www.drupal.org/node/2352949, which includes recommendations on which theme to use.',
       'The "access_check.node.revision" service is deprecated. You should use the \'access_check.entity\' service instead. See https://www.drupal.org/project/drupal/issues/3043321',
       'NodeRevisionAccessCheck is deprecated in Drupal 8.8.x. A removal date will be determined after https://www.drupal.org/project/drupal/issues/2730631 lands. Use "_entity_access" requirement with relevant operation instead.',
+      'The "access_check.media.revision" service is deprecated. You should use the \'access_check.entity\' service instead. See https://www.drupal.org/project/drupal/issues/3043321',
+      'MediaRevisionAccessCheck is deprecated in Drupal 8.8.x. A removal date will be determined after https://www.drupal.org/project/drupal/issues/2730631 lands. Use "_entity_access" requirement with relevant operation instead.',
     ];
   }
 
