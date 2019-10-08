@@ -5,15 +5,20 @@
  * Provides testing functionality.
  */
 
+use Drupal\Component\Uuid\Php;
+use Drupal\Core\Asset\AttachedAssets;
 use Drupal\Core\Asset\AttachedAssetsInterface;
 use Drupal\Core\Database\Database;
 use Drupal\Core\File\Exception\FileException;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\StreamWrapper\PublicStream;
 use Drupal\Core\Test\JUnitConverter;
 use Drupal\Core\Test\PhpUnitTestRunner;
 use Drupal\Core\Test\TestDatabase;
 use Drupal\Core\Url;
+use Drupal\simpletest\Form\SimpletestResultsForm;
 use Drupal\simpletest\TestDiscovery;
 use PHPUnit\Framework\TestCase;
 
@@ -596,72 +601,51 @@ function simpletest_generate_file($filename, $width, $lines, $type = 'binary-tex
 
 /**
  * Removes all temporary database tables and directories.
+ *
+ * @deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Access the
+ *   environment_cleaner service and call its cleanEnvironment() method, or use
+ *   \Drupal\Core\Test\EnvironmentCleaner::cleanEnvironment() instead.
+ *
+ * @see https://www.drupal.org/node/3076634
  */
 function simpletest_clean_environment() {
-  simpletest_clean_database();
-  simpletest_clean_temporary_directories();
-  if (\Drupal::config('simpletest.settings')->get('clear_results')) {
-    $count = simpletest_clean_results_table();
-    \Drupal::messenger()->addStatus(\Drupal::translation()->formatPlural($count, 'Removed 1 test result.', 'Removed @count test results.'));
-  }
-  else {
-    \Drupal::messenger()->addWarning(t('Clear results is disabled and the test results table will not be cleared.'), 'warning');
-  }
+  @trigger_error(__FUNCTION__ . ' is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Access the environment_cleaner service and call its cleanEnvironment() method, or use \Drupal\Core\Test\EnvironmentCleaner::cleanEnvironment() instead.. See https://www.drupal.org/node/3076634', E_USER_DEPRECATED);
+  /* @var $cleaner \Drupal\simpletest\EnvironmentCleanerService */
+  $cleaner = \Drupal::service('environment_cleaner');
+  $cleaner->cleanEnvironment();
 }
 
 /**
  * Removes prefixed tables from the database from crashed tests.
+ *
+ * @deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Access the
+ *   environment_cleaner service and call its cleanDatabase() method, or use
+ *   \Drupal\Core\Test\EnvironmentCleaner::cleanDatabase() instead.
+ *
+ * @see https://www.drupal.org/node/3076634
  */
 function simpletest_clean_database() {
-  $schema = Database::getConnection()->schema();
-  $tables = $schema->findTables('test%');
-  $count = 0;
-  foreach ($tables as $table) {
-    // Only drop tables which begin wih 'test' followed by digits, for example,
-    // {test12345678node__body}.
-    if (preg_match('/^test\d+.*/', $table, $matches)) {
-      $schema->dropTable($matches[0]);
-      $count++;
-    }
-  }
-
-  if ($count > 0) {
-    \Drupal::messenger()->addStatus(\Drupal::translation()->formatPlural($count, 'Removed 1 leftover table.', 'Removed @count leftover tables.'));
-  }
-  else {
-    \Drupal::messenger()->addStatus(t('No leftover tables to remove.'));
-  }
+  @trigger_error(__FUNCTION__ . ' is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Access the environment_cleaner service and call its cleanDatabase() method, or use \Drupal\Core\Test\EnvironmentCleaner::cleanDatabase() instead. See https://www.drupal.org/node/3076634', E_USER_DEPRECATED);
+  /* @var $cleaner \Drupal\simpletest\EnvironmentCleanerService */
+  $cleaner = \Drupal::service('environment_cleaner');
+  $cleaner->cleanDatabase();
 }
 
 /**
  * Finds all leftover temporary directories and removes them.
+ *
+ * @deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Access the
+ *   environment_cleaner service and call its cleanTemporaryDirectories()
+ *   method, or use
+ *   \Drupal\Core\Test\EnvironmentCleaner::cleanTemporaryDirectories() instead.
+ *
+ * @see https://www.drupal.org/node/3076634
  */
 function simpletest_clean_temporary_directories() {
-  $count = 0;
-  if (is_dir(DRUPAL_ROOT . '/sites/simpletest')) {
-    $files = scandir(DRUPAL_ROOT . '/sites/simpletest');
-    foreach ($files as $file) {
-      if ($file[0] != '.') {
-        $path = DRUPAL_ROOT . '/sites/simpletest/' . $file;
-        try {
-          \Drupal::service('file_system')->deleteRecursive($path, function ($any_path) {
-            @chmod($any_path, 0700);
-          });
-        }
-        catch (FileException $e) {
-          // Ignore failed deletes.
-        }
-        $count++;
-      }
-    }
-  }
-
-  if ($count > 0) {
-    \Drupal::messenger()->addStatus(\Drupal::translation()->formatPlural($count, 'Removed 1 temporary directory.', 'Removed @count temporary directories.'));
-  }
-  else {
-    \Drupal::messenger()->addStatus(t('No temporary directories to remove.'));
-  }
+  @trigger_error(__FUNCTION__ . ' is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Access the environment_cleaner service and call its cleanTemporaryDirectories() method, or use \Drupal\Core\Test\EnvironmentCleaner::cleanTemporaryDirectories() instead. See https://www.drupal.org/node/3076634', E_USER_DEPRECATED);
+  /* @var $cleaner \Drupal\simpletest\EnvironmentCleanerService */
+  $cleaner = \Drupal::service('environment_cleaner');
+  $cleaner->cleanTemporaryDirectories();
 }
 
 /**
@@ -672,31 +656,22 @@ function simpletest_clean_temporary_directories() {
  *
  * @return int
  *   The number of results that were removed.
+ *
+ * @deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Access the
+ *   environment_cleaner service and call its cleanResultsTable() method, or use
+ *   \Drupal\Core\Test\EnvironmentCleaner::cleanResultsTable() instead.
+ *
+ * @see https://www.drupal.org/node/3076634
  */
 function simpletest_clean_results_table($test_id = NULL) {
+  @trigger_error(__FUNCTION__ . ' is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Access the environment_cleaner service and call its cleanResultsTable() method, or use \Drupal\Core\Test\EnvironmentCleaner::cleanResultsTable() instead. See https://www.drupal.org/node/3076634', E_USER_DEPRECATED);
+  $count = 0;
   if (\Drupal::config('simpletest.settings')->get('clear_results')) {
-    $connection = TestDatabase::getConnection();
-    if ($test_id) {
-      $count = $connection->query('SELECT COUNT(test_id) FROM {simpletest_test_id} WHERE test_id = :test_id', [':test_id' => $test_id])->fetchField();
-
-      $connection->delete('simpletest')
-        ->condition('test_id', $test_id)
-        ->execute();
-      $connection->delete('simpletest_test_id')
-        ->condition('test_id', $test_id)
-        ->execute();
-    }
-    else {
-      $count = $connection->query('SELECT COUNT(test_id) FROM {simpletest_test_id}')->fetchField();
-
-      // Clear test results.
-      $connection->delete('simpletest')->execute();
-      $connection->delete('simpletest_test_id')->execute();
-    }
-
-    return $count;
+    /* @var $cleaner \Drupal\simpletest\EnvironmentCleanerService */
+    $cleaner = \Drupal::service('environment_cleaner');
+    $count = $cleaner->cleanResultsTable($test_id);
   }
-  return 0;
+  return $count;
 }
 
 /**
@@ -762,4 +737,92 @@ function simpletest_phpunit_find_testcases(\SimpleXMLElement $element, \SimpleXM
 function simpletest_phpunit_testcase_to_row($test_id, \SimpleXMLElement $test_case) {
   @trigger_error(__FUNCTION__ . ' is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Use \Drupal\Core\Test\JUnitConverter::convertTestCaseToSimpletestRow() instead. See https://www.drupal.org/node/2948547', E_USER_DEPRECATED);
   return JUnitConverter::convertTestCaseToSimpletestRow($test_id, $test_case);
+}
+
+/**
+ * Display test results from run-tests.sh in a browser.
+ *
+ * @internal
+ *   This function is only used by run-tests.sh
+ *
+ * @deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. This function
+ *   supports the --browser option in this script. Use the --verbose option
+ *   instead.
+ *
+ * @see https://www.drupal.org/node/3083549
+ */
+function _simpletest_run_tests_script_open_browser() {
+  global $test_ids;
+
+  try {
+    $connection = Database::getConnection('default', 'test-runner');
+    $results = $connection->select('simpletest')
+      ->fields('simpletest')
+      ->condition('test_id', $test_ids, 'IN')
+      ->orderBy('test_class')
+      ->orderBy('message_id')
+      ->execute()
+      ->fetchAll();
+  }
+  catch (Exception $e) {
+    echo (string) $e;
+    exit(SIMPLETEST_SCRIPT_EXIT_EXCEPTION);
+  }
+
+  // Get the results form.
+  $form = [];
+  SimpletestResultsForm::addResultForm($form, $results);
+
+  // Get the assets to make the details element collapsible and theme the result
+  // form.
+  $assets = new AttachedAssets();
+  $assets->setLibraries([
+    'core/drupal.collapse',
+    'system/admin',
+    'simpletest/drupal.simpletest',
+  ]);
+  $resolver = \Drupal::service('asset.resolver');
+  list($js_assets_header, $js_assets_footer) = $resolver->getJsAssets($assets, FALSE);
+  $js_collection_renderer = \Drupal::service('asset.js.collection_renderer');
+  $js_assets_header = $js_collection_renderer->render($js_assets_header);
+  $js_assets_footer = $js_collection_renderer->render($js_assets_footer);
+  $css_assets = \Drupal::service('asset.css.collection_renderer')->render($resolver->getCssAssets($assets, FALSE));
+
+  // Make the html page to write to disk.
+  $render_service = \Drupal::service('renderer');
+  $html = '<head>' . $render_service->renderPlain($js_assets_header) . $render_service->renderPlain($css_assets) . '</head><body>' . $render_service->renderPlain($form) . $render_service->renderPlain($js_assets_footer) . '</body>';
+
+  // Ensure we have assets verbose directory - tests with no verbose output will
+  // not have created one.
+  $directory = PublicStream::basePath() . '/simpletest/verbose';
+  \Drupal::service('file_system')->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+  $php = new Php();
+  $uuid = $php->generate();
+  $filename = $directory . '/results-' . $uuid . '.html';
+  $base_url = getenv('SIMPLETEST_BASE_URL');
+  if (empty($base_url)) {
+    simpletest_script_print_error("--browser needs argument --url.");
+  }
+  $url = $base_url . '/' . PublicStream::basePath() . '/simpletest/verbose/results-' . $uuid . '.html';
+  file_put_contents($filename, $html);
+
+  // See if we can find an OS helper to open URLs in default browser.
+  $browser = FALSE;
+  if (shell_exec('which xdg-open')) {
+    $browser = 'xdg-open';
+  }
+  elseif (shell_exec('which open')) {
+    $browser = 'open';
+  }
+  elseif (substr(PHP_OS, 0, 3) == 'WIN') {
+    $browser = 'start';
+  }
+
+  if ($browser) {
+    shell_exec($browser . ' ' . escapeshellarg($url));
+  }
+  else {
+    // Can't find assets valid browser.
+    print 'Open file://' . realpath($filename) . ' in your browser to see the verbose output.';
+  }
 }

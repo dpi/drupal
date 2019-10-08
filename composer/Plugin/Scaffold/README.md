@@ -302,7 +302,7 @@ manage `.gitignore` files for files written during the scaffold operation.
 - true: `.gitignore` files will be updated when scaffold files are written.
 - false: `.gitignore` files will never be modified.
 - Not set: `.gitignore` files will be updated if the target directory is a local
-working copy of a git repository, and the `vendor` directory is not committed
+working copy of a git repository, and the `vendor` directory is ignored
 in that repository.
 
 ### locations
@@ -468,7 +468,7 @@ Patch a file after it's copied:
 Previous versions of drupal-scaffold (see community project,
 [drupal-composer/drupal-scaffold](https://github.com/drupal-composer/drupal-project))
 downloaded each scaffold file directly from its distribution server (e.g.
-`https://cgit.drupalcode.org`) to the desired destination directory. This was
+`https://git.drupalcode.org`) to the desired destination directory. This was
 necessary, because there was no subtree split of the scaffold files available.
 Copying the scaffold assets from projects already downloaded by Composer is more
 effective, as downloading and unpacking archive files is more efficient than

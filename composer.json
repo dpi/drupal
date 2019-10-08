@@ -22,7 +22,10 @@
         "symfony/css-selector": "^3.4.0",
         "symfony/phpunit-bridge": "^3.4.3",
         "symfony/debug": "^3.4.0",
-        "justinrainbow/json-schema": "^5.2"
+        "justinrainbow/json-schema": "^5.2",
+        "symfony/filesystem": "~3.4.0",
+        "symfony/finder": "~3.4.0",
+        "symfony/lock": "~3.4.0"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -45,10 +48,11 @@
         },
         "installer-paths": {
             "core": ["type:drupal-core"],
+            "libraries/{$name}": ["type:drupal-library"],
             "modules/contrib/{$name}": ["type:drupal-module"],
             "profiles/contrib/{$name}": ["type:drupal-profile"],
             "themes/contrib/{$name}": ["type:drupal-theme"],
-            "drush/contrib/{$name}": ["type:drupal-drush"],
+            "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
             "modules/custom/{$name}": ["type:drupal-custom-module"],
             "themes/custom/{$name}": ["type:drupal-custom-theme"]
         }

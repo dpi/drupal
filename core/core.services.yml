@@ -427,6 +427,9 @@ services:
   logger.channel.form:
     parent: logger.channel_base
     arguments: ['form']
+  logger.channel.security:
+    parent: logger.channel_base
+    arguments: ['security']
   logger.log_message_parser:
     class: Drupal\Core\Logger\LogMessageParser
 
@@ -547,10 +550,9 @@ services:
   # @deprecated in Drupal 8.0.x and will be removed before 9.0.0. Use the other
   #   entity* services instead.
   entity.manager:
-    # We cannot set the deprecated property here because many test cases still
-    # rely on this service and they would fail with deprecation warnings.
     class: Drupal\Core\Entity\EntityManager
     parent: container.trait
+    deprecated: The "%service_id%" service is deprecated. You should use the 'entity_type.manager' service instead.
   entity.memory_cache:
     class: Drupal\Core\Cache\MemoryCache\MemoryCache
   entity_type.manager:
@@ -953,7 +955,7 @@ services:
       - { name: event_subscriber }
   path.alias_storage:
     class: Drupal\Core\Path\AliasStorage
-    arguments: ['@database', '@module_handler']
+    arguments: ['@database', '@module_handler', '@entity_type.manager']
     tags:
       - { name: backend_overridable }
   path.matcher:
@@ -1649,6 +1651,9 @@ services:
       - { name: twig.loader, priority: -100 }
   element_info:
     alias: plugin.manager.element_info
+  file.htaccess_writer:
+    class: Drupal\Core\File\HtaccessWriter
+    arguments: ['@logger.channel.security', '@stream_wrapper_manager']
   file.mime_type.guesser:
     class: Drupal\Core\File\MimeType\MimeTypeGuesser
     arguments: ['@stream_wrapper_manager']

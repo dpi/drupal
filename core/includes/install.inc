@@ -12,6 +12,7 @@ use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Extension\Dependency;
 use Drupal\Core\Extension\ExtensionDiscovery;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Installer\InstallerKernel;
 use Drupal\Core\Site\Settings;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -99,7 +100,7 @@ function drupal_install_profile_distribution_name() {
   // During installation, the profile information is stored in the global
   // installation state (it might not be saved anywhere yet).
   $info = [];
-  if (drupal_installation_attempted()) {
+  if (InstallerKernel::installationAttempted()) {
     global $install_state;
     if (isset($install_state['profile_info'])) {
       $info = $install_state['profile_info'];
@@ -108,7 +109,7 @@ function drupal_install_profile_distribution_name() {
   // At all other times, we load the profile via standard methods.
   else {
     $profile = \Drupal::installProfile();
-    $info = system_get_info('module', $profile);
+    $info = \Drupal::service('extension.list.profile')->getExtensionInfo($profile);
   }
   return isset($info['distribution']['name']) ? $info['distribution']['name'] : 'Drupal';
 }
@@ -126,14 +127,14 @@ function drupal_install_profile_distribution_name() {
 function drupal_install_profile_distribution_version() {
   // During installation, the profile information is stored in the global
   // installation state (it might not be saved anywhere yet).
-  if (drupal_installation_attempted()) {
+  if (InstallerKernel::installationAttempted()) {
     global $install_state;
     return isset($install_state['profile_info']['version']) ? $install_state['profile_info']['version'] : \Drupal::VERSION;
   }
   // At all other times, we load the profile via standard methods.
   else {
     $profile = \Drupal::installProfile();
-    $info = system_get_info('module', $profile);
+    $info = \Drupal::service('extension.list.profile')->getExtensionInfo($profile);
     return $info['version'];
   }
 }
@@ -1094,7 +1095,8 @@ function drupal_check_module($module) {
  *
  * Note that this function does an expensive file system scan to get info file
  * information for dependencies. If you only need information from the info
- * file itself, use system_get_info().
+ * file itself, use
+ * \Drupal::service('extension.list.profile')->getExtensionInfo().
  *
  * Example of .info.yml file:
  * @code

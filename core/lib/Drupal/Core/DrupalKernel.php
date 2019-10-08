@@ -17,6 +17,7 @@ use Drupal\Core\DependencyInjection\YamlFileLoader;
 use Drupal\Core\Extension\ExtensionDiscovery;
 use Drupal\Core\File\MimeType\MimeTypeGuesser;
 use Drupal\Core\Http\TrustedHostsRequestFactory;
+use Drupal\Core\Installer\InstallerKernel;
 use Drupal\Core\Installer\InstallerRedirectTrait;
 use Drupal\Core\Language\Language;
 use Drupal\Core\Security\PharExtensionInterceptor;
@@ -685,7 +686,7 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
       // Redirect the user to the installation script if Drupal has not been
       // installed yet (i.e., if no $databases array has been defined in the
       // settings.php file) and we are not already installing.
-      if (!Database::getConnectionInfo() && !drupal_installation_attempted() && PHP_SAPI !== 'cli') {
+      if (!Database::getConnectionInfo() && !InstallerKernel::installationAttempted() && PHP_SAPI !== 'cli') {
         $response = new RedirectResponse($request->getBasePath() . '/core/install.php', 302, ['Cache-Control' => 'no-cache']);
       }
       else {
@@ -773,16 +774,6 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
       $listing->setProfileDirectories([]);
       $all_profiles = $listing->scan('profile');
       $profiles = array_intersect_key($all_profiles, $this->moduleList);
-
-      // If a module is within a profile directory but specifies another
-      // profile for testing, it needs to be found in the parent profile.
-      $settings = $this->getConfigStorage()->read('simpletest.settings');
-      $parent_profile = !empty($settings['parent_profile']) ? $settings['parent_profile'] : NULL;
-      if ($parent_profile && !isset($profiles[$parent_profile])) {
-        // In case both profile directories contain the same extension, the
-        // actual profile always has precedence.
-        $profiles = [$parent_profile => $all_profiles[$parent_profile]] + $profiles;
-      }
 
       $profile_directories = array_map(function ($profile) {
         return $profile->getPath();

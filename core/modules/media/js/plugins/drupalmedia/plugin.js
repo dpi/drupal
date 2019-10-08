@@ -67,15 +67,6 @@
     }
   }
 
-  Drupal.theme.mediaEmbedError = function () {
-    var error = Drupal.t('An error occurred while trying to preview the media. Please save your work and reload this page.');
-    return '<div class="media-embed-error media-embed-error--preview-error">' + error + '</div>';
-  };
-
-  Drupal.theme.mediaEmbedEditButton = function () {
-    return '<button class="media-library-item__edit">' + Drupal.t('Edit media') + '</button>';
-  };
-
   CKEDITOR.plugins.add('drupalmedia', {
     requires: 'widget',
 
@@ -124,6 +115,12 @@
           }
         },
 
+        getLabel: function getLabel() {
+          if (this.data.label) {
+            return this.data.label;
+          }
+          return Drupal.t('Embedded media');
+        },
         upcast: function upcast(element, data) {
           var attributes = element.attributes;
 
@@ -136,6 +133,7 @@
           if (data.hasCaption && data.attributes['data-caption'] === '') {
             data.attributes['data-caption'] = ' ';
           }
+          data.label = null;
           data.link = null;
           if (element.parent.name === 'a') {
             data.link = CKEDITOR.tools.copy(element.parent.attributes);
@@ -157,10 +155,12 @@
           this._tearDownDynamicEditables();
         },
         data: function data(event) {
+          var _this = this;
+
           if (this.oldData) {
             if (!this.data.hasCaption && this.oldData.hasCaption) {
               delete this.data.attributes['data-caption'];
-            } else if (this.data.hasCaption && !this.oldData.hasCaption) {
+            } else if (this.data.hasCaption && !this.data.attributes['data-caption']) {
               this.data.attributes['data-caption'] = ' ';
             }
           }
@@ -176,18 +176,13 @@
             });
           }
 
-          this.element.setAttributes(this.data.attributes);
-
-          if (this.data.attributes.hasOwnProperty('data-align')) {
-            this.element.getParent().addClass('align-' + this.data.attributes['data-align']);
-          } else {
-            var classes = this.element.getParent().$.classList;
-            for (var i = 0; i < classes.length; i++) {
-              if (classes[i].indexOf('align-') === 0) {
-                this.element.getParent().removeClass(classes[i]);
-              }
-            }
+          if (this.oldData) {
+            Object.keys(this.oldData.attributes).forEach(function (attrName) {
+              _this.element.removeAttribute(attrName);
+            });
           }
+
+          this.element.setAttributes(this.data.attributes);
 
           this.oldData = CKEDITOR.tools.clone(this.data);
         },
@@ -201,7 +196,7 @@
           return downcastElement;
         },
         _setUpDynamicEditables: function _setUpDynamicEditables() {
-          var _this = this;
+          var _this2 = this;
 
           if (this.initEditable('caption', this.definition.editables.caption)) {
             var captionEditable = this.editables.caption;
@@ -209,9 +204,9 @@
             captionEditable.setAttribute('data-placeholder', Drupal.t('Enter caption here'));
 
             this.captionObserver = new MutationObserver(function () {
-              var mediaAttributes = CKEDITOR.tools.clone(_this.data.attributes);
+              var mediaAttributes = CKEDITOR.tools.clone(_this2.data.attributes);
               mediaAttributes['data-caption'] = captionEditable.getData();
-              _this.setData('attributes', mediaAttributes);
+              _this2.setData('attributes', mediaAttributes);
             });
             this.captionObserver.observe(captionEditable.$, {
               characterData: true,
@@ -302,26 +297,30 @@
 
           delete dataToHash.attributes['data-caption'];
 
+          delete dataToHash.label;
+
           if (dataToHash.link) {
             delete dataToHash.link.href;
           }
           return JSON.stringify(dataToHash);
         },
         _loadPreview: function _loadPreview(callback) {
-          var _this2 = this;
+          var _this3 = this;
 
           jQuery.get({
             url: Drupal.url('media/' + editor.config.drupal.format + '/preview'),
             data: {
-              text: this.downcast().getOuterHtml()
+              text: this.downcast().getOuterHtml(),
+              uuid: this.data.attributes['data-entity-uuid']
             },
             dataType: 'html',
-            success: function success(previewHtml) {
-              _this2.element.setHtml(previewHtml);
-              callback(_this2);
+            success: function success(previewHtml, textStatus, jqXhr) {
+              _this3.element.setHtml(previewHtml);
+              _this3.setData('label', jqXhr.getResponseHeader('Drupal-Media-Label'));
+              callback(_this3);
             },
             error: function error() {
-              _this2.element.setHtml(Drupal.theme('mediaEmbedError'));
+              _this3.element.setHtml(Drupal.theme('mediaEmbedPreviewError'));
             }
           });
         }
