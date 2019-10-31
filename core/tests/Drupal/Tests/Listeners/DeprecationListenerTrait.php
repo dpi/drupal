@@ -190,6 +190,10 @@ trait DeprecationListenerTrait {
       'The "core/jquery.ui.controlgroup" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3067969',
       // @todo Remove in https://www.drupal.org/project/drupal/issues/3082655
       'Drupal\Tests\BrowserTestBase::$defaultTheme is required in drupal:9.0.0 when using an install profile that does not set a default theme. See https://www.drupal.org/node/2352949, which includes recommendations on which theme to use.',
+      // The following deprecation is listed for Twig 2 compatibility when unit
+      // testing using \Symfony\Component\ErrorHandler\DebugClassLoader.
+      'The "Twig\Environment::getTemplateClass()" method is considered internal. It may change without further notice. You should not extend it from "Drupal\Core\Template\TwigEnvironment".',
+      // The following deprecation relates to https://www.drupal.org/project/drupal/issues/3043321
       'The "access_check.node.revision" service is deprecated. You should use the \'access_check.entity\' service instead. See https://www.drupal.org/project/drupal/issues/3043321',
       'NodeRevisionAccessCheck is deprecated in Drupal 8.8.x. A removal date will be determined after https://www.drupal.org/project/drupal/issues/2730631 lands. Use "_entity_access" requirement with relevant operation instead.',
       'The "access_check.media.revision" service is deprecated. You should use the \'access_check.entity\' service instead. See https://www.drupal.org/project/drupal/issues/3043321',
