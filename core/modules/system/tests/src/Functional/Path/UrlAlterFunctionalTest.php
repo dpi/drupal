@@ -7,13 +7,16 @@ use Drupal\Core\Database\Database;
 use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\taxonomy\Entity\Term;
+use Drupal\Tests\Traits\Core\PathAliasTestTrait;
 
 /**
  * Tests altering the inbound path and the outbound path.
  *
- * @group Path
+ * @group path
  */
 class UrlAlterFunctionalTest extends BrowserTestBase {
+
+  use PathAliasTestTrait;
 
   /**
    * Modules to enable.
@@ -43,14 +46,13 @@ class UrlAlterFunctionalTest extends BrowserTestBase {
     $this->assertUrlOutboundAlter("/user/$uid", "/user/$name");
 
     // Test that a path always uses its alias.
-    $path = ['source' => "/user/$uid/test1", 'alias' => '/alias/test1'];
-    $this->container->get('path.alias_storage')->save($path['source'], $path['alias']);
+    $this->createPathAlias("/user/$uid/test1", '/alias/test1');
     $this->rebuildContainer();
     $this->assertUrlInboundAlter('/alias/test1', "/user/$uid/test1");
     $this->assertUrlOutboundAlter("/user/$uid/test1", '/alias/test1');
 
     // Test adding an alias via the UI.
-    $edit = ['source' => "/user/$uid/edit", 'alias' => '/alias/test2'];
+    $edit = ['path[0][value]' => "/user/$uid/edit", 'alias[0][value]' => '/alias/test2'];
     $this->drupalPostForm('admin/config/search/path/add', $edit, t('Save'));
     $this->assertText(t('The alias has been saved.'));
     $this->drupalGet('alias/test2');

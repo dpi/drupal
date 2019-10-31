@@ -1,4 +1,4 @@
-# composer-scaffold
+# Drupal Composer Scaffold
 
 This project provides a composer plugin for placing scaffold files (like
 `index.php`, `update.php`, …) from the `drupal/core` project into their desired
@@ -22,7 +22,7 @@ explicitly granted that right in the top-level composer.json file. See
 
 ## Usage
 
-Composer-scaffold is used by requiring `drupal/core-composer-scaffold` in your
+Drupal Composer Scaffold is used by requiring `drupal/core-composer-scaffold` in your
 project, and providing configuration settings in the `extra` section of your
 project's composer.json file. Additional configuration from the composer.json
 file of your project's dependencies is also consulted in order to scaffold the
@@ -30,6 +30,14 @@ files a project needs. Additional information may be added to the beginning or
 end of scaffold files, as is commonly done to `.htaccess` and `robots.txt`
 files. See [altering scaffold files](#altering-scaffold-files) for more
 information.
+
+Typically, the scaffold operations run automatically as needed, e.g. after
+`composer install`, so it is usually not necessary to do anything different
+to scaffold a project once the configuration is set up in the project
+composer.json file, as described below. To scaffold files directly, run:
+```
+composer drupal:scaffold
+```
 
 ### Allowed Packages
 
@@ -45,9 +53,9 @@ Example: Permit scaffolding from the project `drupal/core`
   "name": "my/project",
   ...
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "allowed-packages": [
-        "drupal/core",
+        "drupal/core"
       ],
       ...
     }
@@ -81,7 +89,7 @@ so via the `locations` mapping, as shown below:
   "name": "my/project",
   ...
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "locations": {
         "web-root": "./docroot"
       },
@@ -107,7 +115,7 @@ of the `robots.txt` file provided by `drupal/core`:
   "name": "my/project",
   ...
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "file-mapping": {
         "[web-root]/robots.txt": {
           "append": "assets/my-robots-additions.txt",
@@ -120,13 +128,13 @@ It is also possible to prepend to a scaffold file instead of, or in addition to
 appending by including a "prepend" entry that provides the relative path to the
 file to prepend to the scaffold file.
 
-The example below demonstrates the use of the `post-composer-scaffold-cmd` hook
+The example below demonstrates the use of the `post-drupal-scaffold-cmd` hook
 to patch the `.htaccess` file using a patch.
 ```
   "name": "my/project",
   ...
   "scripts": {
-    "post-composer-scaffold-cmd": [
+    "post-drupal-scaffold-cmd": [
       "cd docroot && patch -p1 <../patches/htaccess-ssl.patch"
     ]
   }
@@ -144,7 +152,7 @@ web root in the snippet below.
   "name": "drupal/assets",
   ...
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "file-mapping": {
         "[web-root]/robots.txt": "assets/robots.txt",
         ...
@@ -163,7 +171,7 @@ setting the value for the scaffold file to exclude to `false`:
   "name": "my/project",
   ...
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "file-mapping": {
         "[web-root]/robots.txt": false
       }
@@ -185,7 +193,7 @@ the `overwrite` flag to `false`, as shown in the example below:
 {
   "name": "service-provider/d8-scaffold-files",
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "file-mapping": {
         "[web-root]/sites/default/settings.php": {
           "mode": "replace",
@@ -213,7 +221,7 @@ to update it.
 
 ## Specifications
 
-Reference section for the configuration directives for the "composer-scaffold"
+Reference section for the configuration directives for the "drupal-scaffold"
 section of the "extra" section of a `composer.json` file appear below.
 
 ### allowed-packages
@@ -294,6 +302,30 @@ path, and it is not possible for multiple entries to have the same key. If
 "prepend" were a separate mode, then it would not be possible to both prepend
 and append to the same file.
 
+By default, append operations may only be applied to files that were scaffolded
+by a previously evaluated project. If the `force-append` attribute is added to
+an `append` operation, though, then the append will be made to non-scaffolded
+files if and only if the append text does not already appear in the file. When
+using this mode, it is also possible to provide default contents to use in the
+event that the destination file is entirely missing.
+
+The example below demonstrates scaffolding a settings-custom.php file, and
+including it from the existing `settings.php` file.
+
+```
+"file-mapping": {
+  "[web-root]/sites/default/settings-custom.php": "assets/settings-custom.php",
+  "[web-root]/sites/default/settings.php": {
+    "append": "assets/include-settings-custom.txt",
+    "force-append": true,
+    "default": "assets/initial-default-settings.txt"
+  }
+}
+```
+
+Note that the example above still works if used with a project that scaffolds
+the settings.php file.
+
 ### gitignore
 
 The `gitignore` configuration setting controls whether or not this plugin will
@@ -348,7 +380,7 @@ Sample composer.json for a project that relies on packages that use composer-sca
 {
   "name": "my/project",
   "require": {
-    "drupal/composer-scaffold": "*",
+    "drupal/core-composer-scaffold": "*",
     "composer/installers": "^1.2",
     "cweagans/composer-patches": "^1.6.5",
     "drupal/core": "^8.8.x-dev",
@@ -359,9 +391,9 @@ Sample composer.json for a project that relies on packages that use composer-sca
     "sort-packages": true
   },
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "allowed-packages": [
-        "drupal/core",
+        "drupal/core"
       ],
       "locations": {
         "web-root": "./docroot"
@@ -383,7 +415,7 @@ Sample composer.json for drupal/core, with assets placed in a different project:
 {
   "name": "drupal/core",
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "allowed-packages": [
         "drupal/assets",
       ]
@@ -398,7 +430,7 @@ Sample composer.json for composer-scaffold files in drupal/assets:
 {
   "name": "drupal/assets",
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "file-mapping": {
         "[web-root]/.csslintrc": "assets/.csslintrc",
         "[web-root]/.editorconfig": "assets/.editorconfig",
@@ -427,7 +459,7 @@ Sample composer.json for a library that implements composer-scaffold:
 {
   "name": "service-provider/d8-scaffold-files",
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "file-mapping": {
         "[web-root]/sites/default/settings.php": "assets/sites/default/settings.php"
       }
@@ -442,7 +474,7 @@ Append to robots.txt:
 {
   "name": "service-provider/d8-scaffold-files",
   "extra": {
-    "composer-scaffold": {
+    "drupal-scaffold": {
       "file-mapping": {
         "[web-root]/robots.txt": {
           "append": "assets/my-robots-additions.txt",
@@ -456,7 +488,7 @@ Append to robots.txt:
 Patch a file after it's copied:
 
 ```
-"post-composer-scaffold-cmd": [
+"post-drupal-scaffold-cmd": [
   "cd docroot && patch -p1 <../patches/htaccess-ssl.patch"
 ]
 ```
@@ -465,7 +497,7 @@ Patch a file after it's copied:
 
 ### drupal-composer/drupal-scaffold
 
-Previous versions of drupal-scaffold (see community project,
+Previous versions of Drupal Composer Scaffold (see community project,
 [drupal-composer/drupal-scaffold](https://github.com/drupal-composer/drupal-project))
 downloaded each scaffold file directly from its distribution server (e.g.
 `https://git.drupalcode.org`) to the desired destination directory. This was

@@ -20,6 +20,7 @@ use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Path\Entity\PathAlias;
 use Drupal\Core\Path\PathAliasStorage;
 use Drupal\Core\Path\PathAliasStorageSchema;
@@ -64,18 +65,33 @@ function system_requirements($phase) {
     }
 
     // Warn if any experimental modules are installed.
-    $experimental = [];
+    $experimental_modules = [];
     $enabled_modules = \Drupal::moduleHandler()->getModuleList();
     foreach ($enabled_modules as $module => $data) {
       $info = \Drupal::service('extension.list.module')->getExtensionInfo($module);
       if (isset($info['package']) && $info['package'] === 'Core (Experimental)') {
-        $experimental[$module] = $info['name'];
+        $experimental_modules[$module] = $info['name'];
       }
     }
-    if (!empty($experimental)) {
-      $requirements['experimental'] = [
+    if (!empty($experimental_modules)) {
+      $requirements['experimental_modules'] = [
         'title' => t('Experimental modules enabled'),
-        'value' => t('Experimental modules found: %module_list. <a href=":url">Experimental modules</a> are provided for testing purposes only. Use at your own risk.', ['%module_list' => implode(', ', $experimental), ':url' => 'https://www.drupal.org/core/experimental']),
+        'value' => t('Experimental modules found: %module_list. <a href=":url">Experimental modules</a> are provided for testing purposes only. Use at your own risk.', ['%module_list' => implode(', ', $experimental_modules), ':url' => 'https://www.drupal.org/core/experimental']),
+        'severity' => REQUIREMENT_WARNING,
+      ];
+    }
+    // Warn if any experimental themes are installed.
+    $experimental_themes = [];
+    $installed_themes = \Drupal::service('theme_handler')->listInfo();
+    foreach ($installed_themes as $theme => $data) {
+      if (isset($data->info['experimental']) && $data->info['experimental']) {
+        $experimental_themes[$theme] = $data->info['name'];
+      }
+    }
+    if (!empty($experimental_themes)) {
+      $requirements['experimental_themes'] = [
+        'title' => t('Experimental themes enabled'),
+        'value' => t('Experimental themes found: %theme_list. Experimental themes are provided for testing purposes only. Use at your own risk.', ['%theme_list' => implode(', ', $experimental_themes)]),
         'severity' => REQUIREMENT_WARNING,
       ];
     }
@@ -1077,6 +1093,23 @@ function system_requirements($phase) {
         'value' => t("Drupal 8 no longer uses the \$settings['install_profile'] value in settings.php and it can be removed."),
         'severity' => REQUIREMENT_INFO,
       ];
+    }
+  }
+
+  // Prevent installation or update if the Pathauto module is installed and its
+  // version is less than 1.6.
+  if ($phase === 'install' || $phase === 'update') {
+    if (\Drupal::moduleHandler()->moduleExists('pathauto')) {
+      $info = \Drupal::service('extension.list.module')->getExtensionInfo('pathauto');
+      if (version_compare($info['version'], '8.x-1.5') <= 0) {
+        $requirements['pathauto_module_incompatibility'] = [
+          'title' => t('Pathauto'),
+          'description' => t('The Pathauto module is not compatible with the current version of Drupal core. Update the <a href=":url">Pathauto</a> module to 8.x-1.6 or later.', [
+            ':url' => 'https://drupal.org/project/pathauto',
+          ]),
+          'severity' => REQUIREMENT_ERROR,
+        ];
+      }
     }
   }
 
@@ -2379,9 +2412,53 @@ function system_update_8803() {
         'revision' => 'revision_id',
         'langcode' => 'langcode',
         'uuid' => 'uuid',
+        'published' => 'status',
       ],
     ]);
-    $entity_definition_update_manager->installEntityType($entity_type);
+
+    $field_storage_definitions['id'] = BaseFieldDefinition::create('integer')
+      ->setLabel(new TranslatableMarkup('ID'))
+      ->setReadOnly(TRUE)
+      ->setSetting('unsigned', TRUE);
+
+    $field_storage_definitions['uuid'] = BaseFieldDefinition::create('uuid')
+      ->setLabel(new TranslatableMarkup('UUID'))
+      ->setReadOnly(TRUE);
+
+    $field_storage_definitions['revision_id'] = BaseFieldDefinition::create('integer')
+      ->setLabel(new TranslatableMarkup('Revision ID'))
+      ->setReadOnly(TRUE)
+      ->setSetting('unsigned', TRUE);
+
+    $field_storage_definitions['langcode'] = BaseFieldDefinition::create('language')
+      ->setLabel(new TranslatableMarkup('Language'))
+      ->setRevisionable(TRUE)
+      ->setDefaultValue(LanguageInterface::LANGCODE_NOT_SPECIFIED);
+
+    $field_storage_definitions['revision_default'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(new TranslatableMarkup('Default revision'))
+      ->setStorageRequired(TRUE)
+      ->setInternal(TRUE)
+      ->setRevisionable(TRUE);
+
+    $field_storage_definitions['status'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(new TranslatableMarkup('Published'))
+      ->setRevisionable(TRUE)
+      ->setDefaultValue(TRUE);
+
+    $field_storage_definitions['path'] = BaseFieldDefinition::create('string')
+      ->setLabel(new TranslatableMarkup('System path'))
+      ->setDescription(new TranslatableMarkup('The path that this alias belongs to.'))
+      ->setRequired(TRUE)
+      ->setRevisionable(TRUE);
+
+    $field_storage_definitions['alias'] = BaseFieldDefinition::create('string')
+      ->setLabel(new TranslatableMarkup('Path alias'))
+      ->setDescription(new TranslatableMarkup('An alias used with this path.'))
+      ->setRequired(TRUE)
+      ->setRevisionable(TRUE);
+
+    $entity_definition_update_manager->installFieldableEntityType($entity_type, $field_storage_definitions);
 
     return t('The "path_alias" entity type has been installed.');
   }
@@ -2418,9 +2495,9 @@ function system_update_8804(&$sandbox = NULL) {
     $uuid = \Drupal::service('uuid');
 
     $base_table_insert = $database->insert('path_alias');
-    $base_table_insert->fields(['id', 'revision_id', 'uuid', 'path', 'alias', 'langcode']);
+    $base_table_insert->fields(['id', 'revision_id', 'uuid', 'path', 'alias', 'langcode', 'status']);
     $revision_table_insert = $database->insert('path_alias_revision');
-    $revision_table_insert->fields(['id', 'revision_id', 'path', 'alias', 'langcode', 'revision_default']);
+    $revision_table_insert->fields(['id', 'revision_id', 'path', 'alias', 'langcode', 'status', 'revision_default']);
     foreach ($url_aliases as $url_alias) {
       $values = [
         'id' => $url_alias->pid,
@@ -2429,6 +2506,7 @@ function system_update_8804(&$sandbox = NULL) {
         'path' => $url_alias->source,
         'alias' => $url_alias->alias,
         'langcode' => $url_alias->langcode,
+        'status' => 1,
       ];
       $base_table_insert->values($values);
 

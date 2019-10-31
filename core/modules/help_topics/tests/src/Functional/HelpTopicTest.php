@@ -132,18 +132,6 @@ class HelpTopicTest extends BrowserTestBase {
     $this->container->get('theme_installer')->uninstall(['help_topics_test_theme']);
     $this->drupalGet('admin/help');
     $session->linkNotExists('XYZ Help Test theme');
-
-    // Verify the Help Topics provided by the Help Topics module for optional
-    // extensions do not exist.
-    $this->drupalGet('admin/help/topic/core.ui_components');
-    $session->linkNotExists('Shortcuts');
-    $session->linkExists('Accessibility features');
-    $this->container->get('module_installer')->install(['shortcut']);
-    $this->drupalGet('admin/help/topic/core.ui_components');
-    $session->linkExists('Shortcuts');
-    $session->linkExists('Accessibility features');
-    $this->clickLink('Shortcuts');
-    $session->pageTextContains('What are shortcuts?');
   }
 
   /**
@@ -239,10 +227,10 @@ class HelpTopicTest extends BrowserTestBase {
   public function verifyBreadCrumb() {
     // Verify Help Topics administration breadcrumbs.
     $trail = [
-        '' => 'Home',
-        'admin' => 'Administration',
-        'admin/help' => 'Help',
-      ];
+      '' => 'Home',
+      'admin' => 'Administration',
+      'admin/help' => 'Help',
+    ];
     $this->assertBreadcrumb('admin/help/topic/help_topics_test.test', $trail);
     // Ensure we are on the expected help topic page.
     $this->assertSession()->pageTextContains('Also there should be a related topic link below to the Help module topic page and the linked topic.');
@@ -253,7 +241,7 @@ class HelpTopicTest extends BrowserTestBase {
       'admin' => 'Administration',
       'admin/config' => 'Configuration',
       'admin/config/system' => 'System',
-      ];
+    ];
     $this->assertBreadcrumb('admin/config/system/site-information', $trail);
   }
 

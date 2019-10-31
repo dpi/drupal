@@ -12,16 +12,6 @@ backbone:
   dependencies:
     - core/underscore
 
-classList:
-  remote: https://github.com/eligrey/classList.js
-  version: "2014-12-13"
-  license:
-    name: Public Domain
-    url: https://github.com/eligrey/classList.js/blob/2014-12-13/LICENSE.md
-    gpl-compatible: true
-  js:
-    assets/vendor/classList/classList.min.js: { weight: -21, browsers: { IE: 'lte IE 9', '!IE': false }, minified: true }
-
 ckeditor:
   remote: https://github.com/ckeditor/ckeditor-dev
   version: "4.11.4"
@@ -32,24 +22,15 @@ ckeditor:
   js:
     assets/vendor/ckeditor/ckeditor.js: { preprocess: false, minified: true }
 
-domready:
-  remote: https://github.com/ded/domready
-  version: "1.0.8"
-  license:
-    name: MIT
-    url: https://github.com/ded/domready/blob/v1.0.8/LICENSE
-    gpl-compatible: true
-  js:
-    assets/vendor/domready/ready.min.js: { weight: -21, minified: true }
-
 drupal:
   version: VERSION
   js:
     misc/drupal.js: { weight: -18 }
     misc/drupal.init.js: { weight: -17 }
   dependencies:
-    - core/domready
     - core/drupalSettings
+  drupalSettings:
+    suppressDeprecationErrors: true
 
 drupalSettings:
   version: VERSION
@@ -76,7 +57,6 @@ drupal.active-link:
   dependencies:
     - core/drupal
     - core/drupalSettings
-    - core/classList
 
 drupal.ajax:
   version: VERSION
@@ -154,7 +134,6 @@ drupal.date:
     - core/drupal
     - core/modernizr
     - core/jquery.once
-    - core/jquery.ui.datepicker
 
 drupal.debounce:
   version: VERSION
@@ -341,19 +320,6 @@ drupal.vertical-tabs:
     - core/drupal
     - core/drupalSettings
     - core/drupal.form
-    - core/matchmedia
-
-html5shiv:
-  # Block the page from being loaded until html5shiv is initialized.
-  header: true
-  remote: https://github.com/aFarkas/html5shiv
-  version: "3.7.3"
-  license:
-    name: GNU-GPL-2.0-or-later
-    url: http://www.gnu.org/licenses/gpl-2.0.html
-    gpl-compatible: true
-  js:
-    assets/vendor/html5shiv/html5shiv.min.js: { weight: -22, browsers: { IE: 'lte IE 8', '!IE': false }, minified: true }
 
 jquery:
   remote: https://github.com/jquery/jquery
@@ -478,6 +444,7 @@ jquery.ui.accordion:
   dependencies:
     - core/jquery.ui
     - core/jquery.ui.widget
+  deprecated: &jquery_ui_unused_deprecated The "%library_id%" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3067969
 
 jquery.ui.autocomplete:
   version: *jquery_ui_version
@@ -520,6 +487,7 @@ jquery.ui.checkboxradio:
   dependencies:
     - core/jquery.ui
     - core/jquery.ui.widget
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.controlgroup:
   version: *jquery_ui_version
@@ -532,17 +500,7 @@ jquery.ui.controlgroup:
   dependencies:
     - core/jquery.ui
     - core/jquery.ui.widget
-
-jquery.ui.datepicker:
-  version: *jquery_ui_version
-  license: *jquery_ui_license
-  js:
-    assets/vendor/jquery.ui/ui/widgets/datepicker-min.js: { minified: true }
-  css:
-    component:
-      assets/vendor/jquery.ui/themes/base/datepicker.css: {}
-  dependencies:
-    - core/jquery.ui
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.dialog:
   version: *jquery_ui_version
@@ -581,12 +539,14 @@ jquery.ui.droppable:
     - core/jquery.ui.widget
     - core/jquery.ui.mouse
     - core/jquery.ui.draggable
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.core:
   version: *jquery_ui_version
   license: *jquery_ui_license
   js:
     assets/vendor/jquery.ui/ui/effect-min.js: { weight: -9, minified: true }
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.blind:
   version: *jquery_ui_version
@@ -595,6 +555,7 @@ jquery.ui.effects.blind:
     assets/vendor/jquery.ui/ui/effects/effect-blind-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.bounce:
   version: *jquery_ui_version
@@ -603,6 +564,7 @@ jquery.ui.effects.bounce:
     assets/vendor/jquery.ui/ui/effects/effect-bounce-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.clip:
   version: *jquery_ui_version
@@ -611,6 +573,7 @@ jquery.ui.effects.clip:
     assets/vendor/jquery.ui/ui/effects/effect-clip-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.drop:
   version: *jquery_ui_version
@@ -619,6 +582,7 @@ jquery.ui.effects.drop:
     assets/vendor/jquery.ui/ui/effects/effect-drop-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.explode:
   version: *jquery_ui_version
@@ -627,6 +591,7 @@ jquery.ui.effects.explode:
     assets/vendor/jquery.ui/ui/effects/effect-explode-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.fade:
   version: *jquery_ui_version
@@ -635,6 +600,7 @@ jquery.ui.effects.fade:
     assets/vendor/jquery.ui/ui/effects/effect-fade-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.fold:
   version: *jquery_ui_version
@@ -643,6 +609,7 @@ jquery.ui.effects.fold:
     assets/vendor/jquery.ui/ui/effects/effect-fold-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.highlight:
   version: *jquery_ui_version
@@ -651,6 +618,7 @@ jquery.ui.effects.highlight:
     assets/vendor/jquery.ui/ui/effects/effect-highlight-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.puff:
   version: *jquery_ui_version
@@ -660,6 +628,7 @@ jquery.ui.effects.puff:
   dependencies:
     - core/jquery.ui.effects.core
     - core/jquery.ui.effects.scale
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.pulsate:
   version: *jquery_ui_version
@@ -668,6 +637,7 @@ jquery.ui.effects.pulsate:
     assets/vendor/jquery.ui/ui/effects/effect-pulsate-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.scale:
   version: *jquery_ui_version
@@ -677,6 +647,7 @@ jquery.ui.effects.scale:
   dependencies:
     - core/jquery.ui.effects.core
     - core/jquery.ui.effects.size
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.shake:
   version: *jquery_ui_version
@@ -685,6 +656,7 @@ jquery.ui.effects.shake:
     assets/vendor/jquery.ui/ui/effects/effect-shake-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.size:
   version: *jquery_ui_version
@@ -693,6 +665,7 @@ jquery.ui.effects.size:
     assets/vendor/jquery.ui/ui/effects/effect-size-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.slide:
   version: *jquery_ui_version
@@ -701,6 +674,7 @@ jquery.ui.effects.slide:
     assets/vendor/jquery.ui/ui/effects/effect-slide-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.effects.transfer:
   version: *jquery_ui_version
@@ -709,6 +683,7 @@ jquery.ui.effects.transfer:
     assets/vendor/jquery.ui/ui/effects/effect-transfer-min.js: { minified: true }
   dependencies:
     - core/jquery.ui.effects.core
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.menu:
   version: *jquery_ui_version
@@ -751,6 +726,7 @@ jquery.ui.progressbar:
   dependencies:
     - core/jquery.ui
     - core/jquery.ui.widget
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.resizable:
   version: *jquery_ui_version
@@ -777,6 +753,7 @@ jquery.ui.selectable:
     - core/jquery.ui
     - core/jquery.ui.mouse
     - core/jquery.ui.widget
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.selectmenu:
   version: *jquery_ui_version
@@ -793,6 +770,7 @@ jquery.ui.selectmenu:
     - core/jquery.ui.menu
     - core/jquery.ui.position
     - core/jquery.ui.widget
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.slider:
   version: *jquery_ui_version
@@ -806,6 +784,7 @@ jquery.ui.slider:
     - core/jquery.ui
     - core/jquery.ui.mouse
     - core/jquery.ui.widget
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.sortable:
   version: *jquery_ui_version
@@ -829,6 +808,7 @@ jquery.ui.spinner:
     - core/jquery.ui
     - core/jquery.ui.widget
     - core/jquery.ui.button
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.tabs:
   version: *jquery_ui_version
@@ -841,6 +821,7 @@ jquery.ui.tabs:
   dependencies:
     - core/jquery.ui
     - core/jquery.ui.widget
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.tooltip:
   version: *jquery_ui_version
@@ -854,6 +835,7 @@ jquery.ui.tooltip:
     - core/jquery.ui
     - core/jquery.ui.widget
     - core/jquery.ui.position
+  deprecated: *jquery_ui_unused_deprecated
 
 jquery.ui.touch-punch:
   remote: https://github.com/furf/jquery-ui-touch-punch
@@ -876,24 +858,6 @@ jquery.ui.widget:
     assets/vendor/jquery.ui/ui/widget-min.js: { weight: -10, minified: true }
   dependencies:
     - core/jquery.ui
-
-matchmedia:
-  remote: https://github.com/paulirish/matchMedia.js
-  version: &matchmedia_version 0.2.0
-  license: &matchmedia_license
-    name: MIT
-    url: https://github.com/paulirish/matchMedia.js/blob/0.2.0/LICENSE.txt
-    gpl-compatible: true
-  js:
-    assets/vendor/matchMedia/matchMedia.min.js: { minified: true }
-
-matchmedia.addListener:
-  version: *matchmedia_version
-  license: *matchmedia_license
-  js:
-    assets/vendor/matchMedia/matchMedia.addListener.min.js: { minified: true }
-  dependencies:
-    - core/matchmedia
 
 modernizr:
   # Block the page from being loaded until Modernizr is initialized.
@@ -928,8 +892,15 @@ picturefill:
     gpl-compatible: true
   js:
     assets/vendor/picturefill/picturefill.min.js: { weight: -10, minified: true }
-  dependencies:
-    - core/matchmedia
+
+popperjs:
+  version: "1.15.0"
+  license:
+    name: MIT
+    url: https://github.com/FezVrasta/popper.js/blob/v1.15.0/LICENSE.md
+    gpl-compatible: true
+  js:
+    assets/vendor/popperjs/popper.min.js: { minified: true }
 
 underscore:
   remote: https://github.com/jashkenas/underscore

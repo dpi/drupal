@@ -3,10 +3,17 @@
     "description": "Drupal is an open source content management platform powering millions of websites and applications.",
     "type": "project",
     "license": "GPL-2.0-or-later",
+    "homepage": "https://www.drupal.org/project/drupal",
+    "support": {
+        "docs": "https://www.drupal.org/docs/user_guide/en/index.html",
+        "chat": "https://www.drupal.org/node/314178"
+    },
     "require": {
         "composer/installers": "^1.0.24",
-        "wikimedia/composer-merge-plugin": "^1.4",
-        "drupal/core": "self.version"
+        "drupal/core": "self.version",
+        "drupal/core-project-message": "self.version",
+        "drupal/core-vendor-hardening": "self.version",
+        "wikimedia/composer-merge-plugin": "^1.4"
     },
     "require-dev": {
         "behat/mink": "1.7.x-dev",
@@ -17,15 +24,17 @@
         "jcalderonzumba/gastonjs": "^1.0.2",
         "jcalderonzumba/mink-phantomjs-driver": "^0.3.1",
         "mikey179/vfsstream": "^1.2",
-        "phpunit/phpunit": "^6.5",
+        "phpunit/phpunit": "^6.5 || ^7",
         "phpspec/prophecy": "^1.7",
-        "symfony/css-selector": "^3.4.0",
-        "symfony/phpunit-bridge": "^3.4.3",
-        "symfony/debug": "^3.4.0",
+        "symfony/css-selector": "^4.4",
+        "symfony/phpunit-bridge": "^4.4",
+        "symfony/debug": "^4.4",
         "justinrainbow/json-schema": "^5.2",
-        "symfony/filesystem": "~3.4.0",
-        "symfony/finder": "~3.4.0",
-        "symfony/lock": "~3.4.0"
+        "symfony/filesystem": "^4.4",
+        "symfony/finder": "^4.4",
+        "symfony/lock": "^4.4",
+        "symfony/browser-kit": "^4.4",
+        "symfony/dom-crawler": "^4.4"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -55,6 +64,18 @@
             "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
             "modules/custom/{$name}": ["type:drupal-custom-module"],
             "themes/custom/{$name}": ["type:drupal-custom-theme"]
+        },
+        "drupal-core-project-message": {
+            "post-install-cmd-message": [
+                "<bg=blue;fg=white>drupal/drupal</>: This package is meant for core development,",
+                "               and not intended to be used for production sites.",
+                "               See: https://www.drupal.org/node/3082474"
+            ],
+            "post-create-project-cmd-message": [
+                "<bg=red;fg=white>drupal/drupal</>: This package is meant for core development,",
+                "               and not intended to be used for production sites.",
+                "               See: https://www.drupal.org/node/3082474"
+            ]
         }
     },
     "autoload": {
@@ -68,12 +89,15 @@
         }
     },
     "scripts": {
-        "pre-install-cmd": "Drupal\\Core\\Composer\\Composer::ensureComposerVersion",
-        "pre-update-cmd": "Drupal\\Core\\Composer\\Composer::ensureComposerVersion",
+        "pre-install-cmd": "Drupal\\Composer\\Composer::ensureComposerVersion",
+        "pre-update-cmd": "Drupal\\Composer\\Composer::ensureComposerVersion",
         "pre-autoload-dump": "Drupal\\Core\\Composer\\Composer::preAutoloadDump",
-        "post-autoload-dump": "Drupal\\Core\\Composer\\Composer::ensureHtaccess",
-        "post-package-install": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup",
-        "post-package-update": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup",
+        "drupal-phpunit-upgrade-check": "Drupal\\Core\\Composer\\Composer::upgradePHPUnit",
+        "drupal-phpunit-upgrade": "@composer update phpunit/phpunit symfony/phpunit-bridge phpspec/prophecy symfony/yaml --with-dependencies --no-progress",
+        "post-update-cmd": [
+            "Drupal\\Composer\\Composer::generateMetapackages",
+            "Drupal\\Composer\\Composer::ensureBehatDriverVersions"
+        ],
         "phpcs": "phpcs --standard=core/phpcs.xml.dist --runtime-set installed_paths $($COMPOSER_BINARY config vendor-dir)/drupal/coder/coder_sniffer --",
         "phpcbf": "phpcbf --standard=core/phpcs.xml.dist --runtime-set installed_paths $($COMPOSER_BINARY config vendor-dir)/drupal/coder/coder_sniffer --"
     },
@@ -85,6 +109,14 @@
         {
             "type": "path",
             "url": "core"
+        },
+        {
+            "type": "path",
+            "url": "composer/Plugin/ProjectMessage"
+        },
+        {
+            "type": "path",
+            "url": "composer/Plugin/VendorHardening"
         }
     ]
 }

@@ -88,7 +88,7 @@ function drupal_phpunit_contrib_extension_directory_roots($root = NULL) {
  *   An associative array of extension directories, keyed by their namespace.
  */
 function drupal_phpunit_get_extension_namespaces($dirs) {
-  $suite_names = ['Unit', 'Kernel', 'Functional', 'FunctionalJavascript'];
+  $suite_names = ['Unit', 'Kernel', 'Functional', 'Build', 'FunctionalJavascript'];
   $namespaces = [];
   foreach ($dirs as $extension => $dir) {
     if (is_dir($dir . '/src')) {
@@ -143,6 +143,7 @@ function drupal_phpunit_populate_class_loader() {
   $loader->add('Drupal\\KernelTests', __DIR__);
   $loader->add('Drupal\\FunctionalTests', __DIR__);
   $loader->add('Drupal\\FunctionalJavascriptTests', __DIR__);
+  $loader->add('Drupal\\TestTools', __DIR__);
 
   if (!isset($GLOBALS['namespaces'])) {
     // Scan for arbitrary extension namespaces from core and contrib.

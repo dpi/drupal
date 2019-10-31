@@ -3,6 +3,7 @@
 namespace Drupal\Core\Path\Entity;
 
 use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\Core\Entity\EntityPublishedTrait;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -15,13 +16,13 @@ use Drupal\Core\Path\PathAliasInterface;
  *
  * @ContentEntityType(
  *   id = "path_alias",
- *   label = @Translation("Path alias"),
- *   label_collection = @Translation("Path aliases"),
- *   label_singular = @Translation("path alias"),
- *   label_plural = @Translation("path aliases"),
+ *   label = @Translation("URL alias"),
+ *   label_collection = @Translation("URL aliases"),
+ *   label_singular = @Translation("URL alias"),
+ *   label_plural = @Translation("URL aliases"),
  *   label_count = @PluralTranslation(
- *     singular = "@count path alias",
- *     plural = "@count path aliases"
+ *     singular = "@count URL alias",
+ *     plural = "@count URL aliases"
  *   ),
  *   handlers = {
  *     "storage" = "Drupal\Core\Path\PathAliasStorage",
@@ -34,12 +35,18 @@ use Drupal\Core\Path\PathAliasInterface;
  *     "revision" = "revision_id",
  *     "langcode" = "langcode",
  *     "uuid" = "uuid",
+ *     "published" = "status",
  *   },
  *   admin_permission = "administer url aliases",
  *   list_cache_tags = { "route_match" },
+ *   constraints = {
+ *     "UniquePathAlias" = {}
+ *   }
  * )
  */
 class PathAlias extends ContentEntityBase implements PathAliasInterface {
+
+  use EntityPublishedTrait;
 
   /**
    * {@inheritdoc}
@@ -51,15 +58,32 @@ class PathAlias extends ContentEntityBase implements PathAliasInterface {
       ->setLabel(new TranslatableMarkup('System path'))
       ->setDescription(new TranslatableMarkup('The path that this alias belongs to.'))
       ->setRequired(TRUE)
-      ->setRevisionable(TRUE);
+      ->setRevisionable(TRUE)
+      ->addPropertyConstraints('value', [
+        'Regex' => [
+          'pattern' => '/^\//i',
+          'message' => new TranslatableMarkup('The source path has to start with a slash.'),
+        ],
+      ])
+      ->addPropertyConstraints('value', ['ValidPath' => []]);
 
     $fields['alias'] = BaseFieldDefinition::create('string')
-      ->setLabel(new TranslatableMarkup('Path alias'))
+      ->setLabel(new TranslatableMarkup('URL alias'))
       ->setDescription(new TranslatableMarkup('An alias used with this path.'))
       ->setRequired(TRUE)
-      ->setRevisionable(TRUE);
+      ->setRevisionable(TRUE)
+      ->addPropertyConstraints('value', [
+        'Regex' => [
+          'pattern' => '/^\//i',
+          'message' => new TranslatableMarkup('The alias path has to start with a slash.'),
+        ],
+      ]);
 
     $fields['langcode']->setDefaultValue(LanguageInterface::LANGCODE_NOT_SPECIFIED);
+
+    // Add the published field.
+    $fields += static::publishedBaseFieldDefinitions($entity_type);
+    $fields['status']->setTranslatable(FALSE);
 
     return $fields;
   }

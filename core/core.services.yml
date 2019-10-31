@@ -106,7 +106,7 @@ services:
       - { name: cache.context }
   cache_context.url.query_args.pagers:
     class: Drupal\Core\Cache\Context\PagersCacheContext
-    arguments: ['@request_stack']
+    arguments: ['@pager.parameters']
     tags:
       - { name: cache.context }
 
@@ -315,9 +315,16 @@ services:
     public: false
     tags:
       - { name: backend_overridable }
+  config.import_transformer:
+    class: Drupal\Core\Config\ImportStorageTransformer
+    arguments: ['@event_dispatcher', '@database', '@lock', '@lock.persistent']
   config.storage.export:
-    class: Drupal\Core\Config\ReadOnlyStorage
-    arguments: ['@config.storage']
+    class: Drupal\Core\Config\ManagedStorage
+    arguments: ['@config.storage.export.manager']
+  config.storage.export.manager:
+    class: Drupal\Core\Config\ExportStorageManager
+    arguments: ['@config.storage', '@database', '@event_dispatcher', '@lock']
+    public: false
   # @deprecated in Drupal 8.0.x and will be removed before 9.0.0. Use
   #   config.storage.sync instead.
   # @see https://www.drupal.org/node/2574957
@@ -458,10 +465,10 @@ services:
     class: Drupal\Core\Path\AliasWhitelist
     tags:
       - { name: needs_destruction }
-    arguments: [path_alias_whitelist, '@cache.bootstrap', '@lock', '@state', '@path.alias_storage']
+    arguments: [path_alias_whitelist, '@cache.bootstrap', '@lock', '@state', '@path.alias_repository']
   path.alias_manager:
     class: Drupal\Core\Path\AliasManager
-    arguments: ['@path.alias_storage', '@path.alias_whitelist', '@language_manager', '@cache.data']
+    arguments: ['@path.alias_repository', '@path.alias_whitelist', '@language_manager', '@cache.data']
   path.current:
     class: Drupal\Core\Path\CurrentPathStack
     arguments: ['@request_stack']
@@ -953,11 +960,17 @@ services:
     arguments: ['@lock', '@plugin.manager.menu.link', '@database', '@database.replica_kill_switch']
     tags:
       - { name: event_subscriber }
+  path.alias_repository:
+    class: Drupal\Core\Path\AliasRepository
+    arguments: ['@database']
+    tags:
+      - { name: backend_overridable }
   path.alias_storage:
     class: Drupal\Core\Path\AliasStorage
     arguments: ['@database', '@module_handler', '@entity_type.manager']
     tags:
       - { name: backend_overridable }
+    deprecated: The "%service_id%" service is deprecated. Use the "path.alias_repository" service instead, or the entity storage handler for the "path_alias" entity type for CRUD methods. See https://www.drupal.org/node/3013865
   path.matcher:
     class: Drupal\Core\Path\PathMatcher
     arguments: ['@config.factory', '@current_route_match']
@@ -1273,6 +1286,11 @@ services:
     tags:
       - { name: event_subscriber }
     arguments: ['@config.manager', '@config.storage', '@config.storage.snapshot']
+  config_exclude_modules_subscriber:
+    class: Drupal\Core\EventSubscriber\ExcludedModulesEventSubscriber
+    arguments: ['@config.storage', '@settings', '@config.manager']
+    tags:
+      - { name: event_subscriber }
   exception.needs_installer:
     class: Drupal\Core\EventSubscriber\ExceptionDetectNeedsInstallSubscriber
     arguments: ['@database']
@@ -1611,6 +1629,7 @@ services:
     arguments: ['@library.discovery', '@library.dependency_resolver', '@module_handler', '@theme.manager', '@language_manager', '@cache.data']
   info_parser:
     class: Drupal\Core\Extension\InfoParser
+    arguments: ['@app.root']
   twig:
     class: Drupal\Core\Template\TwigEnvironment
     arguments: ['@app.root', '@cache.default', '%twig_extension_hash%', '@state', '@twig.loader', '%twig.config%']
@@ -1624,11 +1643,11 @@ services:
   # @todo Figure out what to do about debugging functions.
   # @see https://www.drupal.org/node/1804998
   twig.extension.debug:
-    class: Twig_Extension_Debug
+    class: Twig\Extension\DebugExtension
     tags:
       - { name: twig.extension }
   twig.loader:
-    class: Twig_Loader_Chain
+    class: Twig\Loader\ChainLoader
     public: false
     tags:
       - { name: service_collector, tag: twig.loader, call: addLoader, required: TRUE }
@@ -1730,3 +1749,9 @@ services:
     arguments: ['@keyvalue.expirable', '@lock', '@request_stack', '%tempstore.expire%']
     tags:
       - { name: backend_overridable }
+  pager.manager:
+    class: Drupal\Core\Pager\PagerManager
+    arguments: ['@pager.parameters']
+  pager.parameters:
+    class: Drupal\Core\Pager\PagerParameters
+    arguments: ['@request_stack']

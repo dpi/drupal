@@ -53,7 +53,7 @@ class ThemeExtensionListTest extends UnitTestCase {
     $info_parser->parse(Argument::that($argument_condition))
       ->shouldBeCalled()
       ->will(function ($file) use ($root) {
-        $info_parser = new InfoParser();
+        $info_parser = new InfoParser($root);
         return $info_parser->parse($root . '/' . $file[0]);
       });
 
@@ -124,7 +124,7 @@ class ThemeExtensionListTest extends UnitTestCase {
     $state = new State(new KeyValueMemoryFactory(), new MemoryBackend(), new NullLockBackend());
     $config_factory = $this->getConfigFactoryStub([]);
     $theme_engine_list = $this->prophesize(ThemeEngineExtensionList::class);
-    $theme_listing = new ThemeExtensionList($this->root, 'theme', new NullBackend('test'), new InfoParser(), $module_handler->reveal(), $state, $config_factory, $theme_engine_list->reveal(), 'test');
+    $theme_listing = new ThemeExtensionList($this->root, 'theme', new NullBackend('test'), new InfoParser($this->root), $module_handler->reveal(), $state, $config_factory, $theme_engine_list->reveal(), 'test');
 
     $base_themes = $theme_listing->getBaseThemes($themes, $theme);
 
@@ -261,5 +261,5 @@ class TestThemeEngineExtensionList extends ThemeEngineExtensionList {
 }
 
 if (!defined('DRUPAL_MINIMUM_PHP')) {
-  define('DRUPAL_MINIMUM_PHP', '5.5.9');
+  define('DRUPAL_MINIMUM_PHP', '7.2.3');
 }

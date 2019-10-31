@@ -7,6 +7,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Serialization\Yaml;
 use Twig\Error\LoaderError;
+use Twig\Loader\FilesystemLoader;
 use Twig\Source;
 
 /**
@@ -20,11 +21,11 @@ use Twig\Source;
  * @see \Drupal\help_topics\HelpTopicTwig
  *
  * @internal
- *   Help Topic is currently experimental and should only be leveraged by
+ *   Help Topics is currently experimental and should only be leveraged by
  *   experimental modules and development releases of contributed modules.
  *   See https://www.drupal.org/core/experimental for more information.
  */
-class HelpTopicTwigLoader extends \Twig_Loader_Filesystem {
+class HelpTopicTwigLoader extends FilesystemLoader {
 
   /**
    * {@inheritdoc}
@@ -44,7 +45,8 @@ class HelpTopicTwigLoader extends \Twig_Loader_Filesystem {
   public function __construct($root_path, ModuleHandlerInterface $module_handler, ThemeHandlerInterface $theme_handler) {
     parent::__construct([], $root_path);
     // Add help_topics directories for modules and themes in the 'help_topic'
-    // namespace.
+    // namespace, plus core.
+    $this->addExtension($root_path . '/core');
     array_map([$this, 'addExtension'], $module_handler->getModuleDirectories());
     array_map([$this, 'addExtension'], $theme_handler->getThemeDirectories());
   }
