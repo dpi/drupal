@@ -17,6 +17,11 @@ class PathLanguageTest extends PathTestBase {
   public static $modules = ['path', 'locale', 'locale_test', 'content_translation'];
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * An user with permissions to administer content types.
    *
    * @var \Drupal\user\UserInterface
@@ -119,7 +124,7 @@ class PathLanguageTest extends PathTestBase {
     $languages = $this->container->get('language_manager')->getLanguages();
     $url = $english_node_french_translation->toUrl('canonical', ['language' => $languages['fr']])->toString();
 
-    $this->assertTrue(strpos($url, $edit['path[0][alias]']), 'URL contains the path alias.');
+    $this->assertContains($edit['path[0][alias]'], $url, 'URL contains the path alias.');
 
     // Confirm that the alias works even when changing language negotiation
     // options. Enable User language detection and selection over URL one.

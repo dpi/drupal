@@ -38,7 +38,7 @@ class RouteProviderTest extends KernelTestBase {
   /**
    * Modules to enable.
    */
-  public static $modules = ['url_alter_test', 'system', 'language'];
+  public static $modules = ['url_alter_test', 'system', 'language', 'path_alias'];
 
   /**
    * A collection of shared fixture data for tests.
@@ -100,8 +100,8 @@ class RouteProviderTest extends KernelTestBase {
     parent::register($container);
 
     // Read the incoming path alias for these tests.
-    if ($container->hasDefinition('path_processor_alias')) {
-      $definition = $container->getDefinition('path_processor_alias');
+    if ($container->hasDefinition('path_alias.path_processor')) {
+      $definition = $container->getDefinition('path_alias.path_processor');
       $definition->addTag('path_processor_inbound');
     }
   }
@@ -523,10 +523,10 @@ class RouteProviderTest extends KernelTestBase {
     $request = Request::create($path, 'GET');
 
     $routes = $provider->getRoutesByPattern($path);
-    $this->assertFalse(count($routes), 'No path found with this pattern.');
+    $this->assertEmpty($routes, 'No path found with this pattern.');
 
     $collection = $provider->getRouteCollectionForRequest($request);
-    $this->assertTrue(count($collection) == 0, 'Empty route collection found with this pattern.');
+    $this->assertEmpty($collection, 'Empty route collection found with this pattern.');
   }
 
   /**
