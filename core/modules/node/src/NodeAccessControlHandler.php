@@ -151,13 +151,13 @@ class NodeAccessControlHandler extends EntityAccessControlHandler implements Nod
       $bundle = $node->bundle();
       // If user doesn't have any of these then quit.
       if (!$account->hasPermission("$revisionPermissionOperation all revisions") && !$account->hasPermission("$revisionPermissionOperation $bundle revisions") && !$account->hasPermission('administer nodes')) {
-        return AccessResult::neutral();
+        return AccessResult::neutral()->cachePerPermissions();
       }
 
       // If the revisions checkbox is selected for the content type, display the
       // revisions tab.
       if ($operation === 'view all revisions' && $node->type->entity->shouldCreateNewRevision()) {
-        return AccessResult::allowed();
+        return AccessResult::allowed()->addCacheableDependency($node->type->entity);
       }
 
       // There should be at least two revisions. If the vid of the given node
@@ -166,10 +166,10 @@ class NodeAccessControlHandler extends EntityAccessControlHandler implements Nod
       // check. Also, if you try to revert to or delete the default revision,
       // that's not good.
       if ($node->isDefaultRevision() && ($this->nodeStorage->countDefaultLanguageRevisions($node) == 1 || $entityOperation === 'update' || $entityOperation === 'delete')) {
-        return AccessResult::neutral();
+        return AccessResult::neutral()->addCacheableDependency($node);
       }
       elseif ($account->hasPermission('administer nodes')) {
-        return AccessResult::allowed();
+        return AccessResult::allowed()->cachePerPermissions();
       }
       else {
         // First check the access to the default revision and finally, if the
