@@ -142,7 +142,6 @@ trait DeprecationListenerTrait {
     return [
       // The following deprecation message is skipped for testing purposes.
       '\Drupal\Tests\SkippedDeprecationTest deprecation',
-<<<<<<< ours
       // The following Symfony deprecations are introduced in the Symfony 4
       // development cycle. They will need to be resolved prior to Symfony 5
       // compatibility.
@@ -204,38 +203,11 @@ trait DeprecationListenerTrait {
       'AssertLegacyTrait::assertCacheTag() is deprecated in drupal:8.2.0 and is removed from drupal:10.0.0. Use $this->assertSession()->responseHeaderContains() instead. See https://www.drupal.org/node/3129738',
       'AssertLegacyTrait::buildXPathQuery() is deprecated in drupal:8.2.0 and is removed from drupal:10.0.0. Use $this->assertSession()->buildXPathQuery() instead. See https://www.drupal.org/node/3129738',
       'AssertLegacyTrait::constructFieldXpath() is deprecated in drupal:8.5.0 and is removed from drupal:10.0.0. Use $this->getSession()->getPage()->findField() instead. See https://www.drupal.org/node/3129738',
-=======
-      // These deprecations are triggered by symfony/psr-http-message-factory
-      // 1.2, which can be installed if you update dependencies on php 7 or
-      // higher
-      'The "Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory" class is deprecated since symfony/psr-http-message-bridge 1.2, use PsrHttpFactory instead.',
-      'The "psr7.http_message_factory" service relies on the deprecated "Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory" class. It should either be deprecated or its implementation upgraded.',
-      // This deprecation comes from behat/mink-browserkit-driver when updating
-      // symfony/browser-kit to 4.3+.
-      'The "Symfony\Component\BrowserKit\Response::getStatus()" method is deprecated since Symfony 4.3, use getStatusCode() instead.',
-      'The "core/jquery.ui.checkboxradio" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3067969',
-      'The "core/jquery.ui.controlgroup" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3067969',
-      'The "core/html5shiv" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3086383',
-      'The "core/matchmedia" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3086653',
-      'The "core/matchmedia.addListener" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3086653',
-      'The "core/classList" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Use the the native browser implementation instead. See https://www.drupal.org/node/3089511',
-      'The "core/jquery.ui.datepicker" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3081864',
-      'The "locale/drupal.locale.datepicker" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3081864',
-      // These deprecations are triggered when instantiating path alias
-      // services. The new versions live in the "path_alias" module.
-      // @todo Remove in https://www.drupal.org/node/3092090.
-      'The "path.alias_manager" service is deprecated. Use "path_alias.manager" instead. See https://drupal.org/node/3092086',
-      'The \Drupal\Core\EventSubscriber\PathSubscriber class is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Instead, use \Drupal\path_alias\EventSubscriber\PathAliasSubscriber. See https://drupal.org/node/3092086',
-      'The \Drupal\Core\PathProcessor\PathProcessorAlias class is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Instead, use \Drupal\path_alias\PathProcessor\AliasPathProcessor. See https://drupal.org/node/3092086',
-      'The \Drupal\Core\Path\AliasManager class is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Instead, use \Drupal\path_alias\AliasManager. See https://drupal.org/node/3092086',
-      'The \Drupal\Core\Path\AliasRepository class is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Instead, use \Drupal\path_alias\AliasRepository. See https://drupal.org/node/3092086',
-      'The \Drupal\Core\Path\AliasWhitelist class is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. Instead, use \Drupal\path_alias\AliasWhitelist. See https://drupal.org/node/3092086',
       // The following deprecation relates to https://www.drupal.org/project/drupal/issues/3043321
       'The "access_check.node.revision" service is deprecated. You should use the \'access_check.entity\' service instead. See https://www.drupal.org/project/drupal/issues/3043321',
       'NodeRevisionAccessCheck is deprecated in Drupal 8.8.x. A removal date will be determined after https://www.drupal.org/project/drupal/issues/2730631 lands. Use "_entity_access" requirement with relevant operation instead.',
       'The "access_check.media.revision" service is deprecated. You should use the \'access_check.entity\' service instead. See https://www.drupal.org/project/drupal/issues/3043321',
       'MediaRevisionAccessCheck is deprecated in Drupal 8.8.x. A removal date will be determined after https://www.drupal.org/project/drupal/issues/2730631 lands. Use "_entity_access" requirement with relevant operation instead.',
->>>>>>> theirs
     ];
   }
 
