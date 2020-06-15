@@ -2,14 +2,14 @@
 
 namespace Drupal\workspaces\EventSubscriber;
 
-use Drupal\Core\Path\AliasManagerInterface;
+use Drupal\path_alias\AliasManagerInterface;
 use Drupal\Core\Path\CurrentPathStack;
 use Drupal\Core\Routing\CacheableRouteProviderInterface;
 use Drupal\Core\Routing\RouteProviderInterface;
 use Drupal\workspaces\WorkspaceManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -20,7 +20,7 @@ class WorkspaceRequestSubscriber implements EventSubscriberInterface {
   /**
    * The alias manager that caches alias lookups based on the request.
    *
-   * @var \Drupal\Core\Path\AliasManagerInterface
+   * @var \Drupal\path_alias\AliasManagerInterface
    */
   protected $aliasManager;
 
@@ -48,7 +48,7 @@ class WorkspaceRequestSubscriber implements EventSubscriberInterface {
   /**
    * Constructs a new WorkspaceRequestSubscriber instance.
    *
-   * @param \Drupal\Core\Path\AliasManagerInterface $alias_manager
+   * @param \Drupal\path_alias\AliasManagerInterface $alias_manager
    *   The alias manager.
    * @param \Drupal\Core\Path\CurrentPathStack $current_path
    *   The current path.
@@ -69,10 +69,10 @@ class WorkspaceRequestSubscriber implements EventSubscriberInterface {
    *
    * KernelEvents::CONTROLLER is used in order to be executed after routing.
    *
-   * @param \Symfony\Component\HttpKernel\Event\FilterControllerEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\ControllerEvent $event
    *   The Event to process.
    */
-  public function onKernelController(FilterControllerEvent $event) {
+  public function onKernelController(ControllerEvent $event) {
     // Set the cache key on the alias manager cache decorator.
     if ($event->isMasterRequest() && $this->workspaceManager->hasActiveWorkspace()) {
       $cache_key = $this->workspaceManager->getActiveWorkspace()->id() . ':' . rtrim($this->currentPath->getPath($event->getRequest()), '/');
@@ -83,10 +83,10 @@ class WorkspaceRequestSubscriber implements EventSubscriberInterface {
   /**
    * Adds the active workspace as a cache key part to the route provider.
    *
-   * @param \Symfony\Component\HttpKernel\Event\GetResponseEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\RequestEvent $event
    *   An event object.
    */
-  public function onKernelRequest(GetResponseEvent $event) {
+  public function onKernelRequest(RequestEvent $event) {
     if ($this->workspaceManager->hasActiveWorkspace() && $this->routeProvider instanceof CacheableRouteProviderInterface) {
       $this->routeProvider->addExtraCacheKeyPart('workspace', $this->workspaceManager->getActiveWorkspace()->id());
     }

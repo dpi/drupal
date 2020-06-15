@@ -2,6 +2,8 @@
 
 namespace Drupal\Composer\Generator\Builder;
 
+use Drupal\Composer\Composer;
+
 /**
  * Builder to produce metapackage for drupal/core-recommended.
  */
@@ -28,7 +30,7 @@ class DrupalCoreRecommendedBuilder extends DrupalPackageBuilder {
     }
 
     // Make a list of packages we do not want to put in the 'require' section.
-    $remove_list = ['drupal/core', 'wikimedia/composer-merge-plugin'];
+    $remove_list = ['drupal/core', 'wikimedia/composer-merge-plugin', 'composer/installers'];
 
     // Copy the 'packages' section from the Composer lock into our 'require'
     // section. There is also a 'packages-dev' section, but we do not need
@@ -60,7 +62,7 @@ class DrupalCoreRecommendedBuilder extends DrupalPackageBuilder {
         "webflo/drupal-core-strict" => "*",
       ],
       "require" => [
-        "drupal/core" => "self.version",
+        "drupal/core" => Composer::drupalVersionBranch(),
       ],
     ];
   }

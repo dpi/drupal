@@ -17,7 +17,7 @@ class MenuRouterTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['block', 'menu_test', 'test_page_test'];
+  protected static $modules = ['block', 'menu_test', 'test_page_test'];
 
   /**
    * {@inheritdoc}
@@ -31,7 +31,7 @@ class MenuRouterTest extends BrowserTestBase {
    */
   protected $adminTheme;
 
-  protected function setUp() {
+  protected function setUp(): void {
     // Enable dummy module that implements hook_menu.
     parent::setUp();
 
@@ -68,7 +68,7 @@ class MenuRouterTest extends BrowserTestBase {
     $this->assertLink('Local task A');
     $this->assertLink('Local task B');
     $this->assertNoLink('Local task C');
-    $this->assertEscaped("<script>alert('Welcome to the jungle!')</script>", ENT_QUOTES, 'UTF-8');
+    $this->assertEscaped("<script>alert('Welcome to the jungle!')</script>");
     // Confirm correct local task href.
     $this->assertLinkByHref(Url::fromRoute('menu_test.router_test1', ['bar' => $machine_name])->toString());
     $this->assertLinkByHref(Url::fromRoute('menu_test.router_test2', ['bar' => $machine_name])->toString());
@@ -165,11 +165,11 @@ class MenuRouterTest extends BrowserTestBase {
    */
   protected function doTestMenuOptionalPlaceholders() {
     $this->drupalGet('menu-test/optional');
-    $this->assertResponse(200);
+    $this->assertSession()->statusCodeEquals(200);
     $this->assertText('Sometimes there is no placeholder.');
 
     $this->drupalGet('menu-test/optional/foobar');
-    $this->assertResponse(200);
+    $this->assertSession()->statusCodeEquals(200);
     $this->assertText("Sometimes there is a placeholder: 'foobar'.");
   }
 

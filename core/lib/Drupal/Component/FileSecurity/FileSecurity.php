@@ -41,7 +41,7 @@ class FileSecurity {
    * @return string
    *   The desired contents of the .htaccess file.
    *
-   * @see file_save_htaccess()
+   * @see \Drupal\Component\FileSecurity\FileSecurity::writeHtaccess()
    */
   public static function htaccessLines($deny_public_access = TRUE) {
     $lines = static::htaccessPreventExecution();
@@ -72,9 +72,6 @@ SetHandler Drupal_Security_Do_Not_Remove_See_SA_2006_006
 </Files>
 
 # If we know how to do it safely, disable the PHP engine entirely.
-<IfModule mod_php5.c>
-  php_flag engine off
-</IfModule>
 <IfModule mod_php7.c>
   php_flag engine off
 </IfModule>

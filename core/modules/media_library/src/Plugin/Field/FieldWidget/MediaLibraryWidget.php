@@ -86,18 +86,10 @@ class MediaLibraryWidget extends WidgetBase implements ContainerFactoryPluginInt
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityTypeManagerInterface $entity_type_manager, AccountInterface $current_user = NULL, ModuleHandlerInterface $module_handler = NULL) {
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityTypeManagerInterface $entity_type_manager, AccountInterface $current_user, ModuleHandlerInterface $module_handler) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings);
     $this->entityTypeManager = $entity_type_manager;
-    if (!$current_user) {
-      @trigger_error('The current_user service must be passed to MediaLibraryWidget::__construct(), it is required before Drupal 9.0.0.', E_USER_DEPRECATED);
-      $current_user = \Drupal::currentUser();
-    }
     $this->currentUser = $current_user;
-    if (!$module_handler) {
-      @trigger_error('The module_handler service must be passed to MediaLibraryWidget::__construct(), it is required before Drupal 9.0.0.', E_USER_DEPRECATED);
-      $module_handler = \Drupal::moduleHandler();
-    }
     $this->moduleHandler = $module_handler;
   }
 
@@ -478,7 +470,7 @@ class MediaLibraryWidget extends WidgetBase implements ContainerFactoryPluginInt
 
     // Add a button that will load the Media library in a modal using AJAX.
     $element['open_button'] = [
-      '#type' => 'submit',
+      '#type' => 'button',
       '#value' => $this->t('Add media'),
       '#name' => $field_name . '-media-library-open-button' . $id_suffix,
       '#attributes' => [
@@ -497,7 +489,6 @@ class MediaLibraryWidget extends WidgetBase implements ContainerFactoryPluginInt
           'message' => $this->t('Opening media library.'),
         ],
       ],
-      '#submit' => [],
       // Allow the media library to be opened even if there are form errors.
       '#limit_validation_errors' => [],
     ];
@@ -668,7 +659,9 @@ class MediaLibraryWidget extends WidgetBase implements ContainerFactoryPluginInt
 
     // Announce the updated content to screen readers.
     if ($is_remove_button) {
-      $announcement = t('Removed @label.', ['@label' => Media::load($field_state['removed_item_id'])->label()]);
+      $announcement = t('@label has been removed.', [
+        '@label' => Media::load($field_state['removed_item_id'])->label(),
+      ]);
     }
     else {
       $new_items = count(static::getNewMediaItems($element, $form_state));

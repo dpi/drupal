@@ -19,12 +19,20 @@ class PathItemTest extends KernelTestBase {
    *
    * @var array
    */
-  public static $modules = ['path', 'path_alias', 'node', 'user', 'system', 'language', 'content_translation'];
+  protected static $modules = [
+    'path',
+    'path_alias',
+    'node',
+    'user',
+    'system',
+    'language',
+    'content_translation',
+  ];
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->installEntitySchema('node');
@@ -44,7 +52,7 @@ class PathItemTest extends KernelTestBase {
    * Test creating, loading, updating and deleting aliases through PathItem.
    */
   public function testPathItem() {
-    /** @var \Drupal\Core\Path\AliasRepositoryInterface $alias_repository */
+    /** @var \Drupal\path_alias\AliasRepositoryInterface $alias_repository */
     $alias_repository = \Drupal::service('path_alias.repository');
 
     $node_storage = \Drupal::entityTypeManager()->getStorage('node');

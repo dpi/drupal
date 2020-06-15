@@ -7,6 +7,7 @@ use Behat\Mink\Driver\GoutteDriver;
 use Behat\Mink\Mink;
 use Behat\Mink\Session;
 use Drupal\Component\FileSystem\FileSystem as DrupalFilesystem;
+use Drupal\Tests\Traits\PHPUnit8Warnings;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\BrowserKit\Client as SymfonyClient;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
@@ -52,6 +53,7 @@ use Symfony\Component\Process\Process;
 abstract class BuildTestBase extends TestCase {
 
   use ExternalCommandRequirementsTrait;
+  use PHPUnit8Warnings;
 
   /**
    * The working directory where this test will manipulate files.
@@ -266,7 +268,7 @@ abstract class BuildTestBase extends TestCase {
    *   Text we expect to find in the error output of the command.
    */
   public function assertErrorOutputContains($expected) {
-    $this->assertContains($expected, $this->commandProcess->getErrorOutput());
+    $this->assertStringContainsString($expected, $this->commandProcess->getErrorOutput());
   }
 
   /**
@@ -276,7 +278,7 @@ abstract class BuildTestBase extends TestCase {
    *   Text we expect to find in the output of the command.
    */
   public function assertCommandOutputContains($expected) {
-    $this->assertContains($expected, $this->commandProcess->getOutput());
+    $this->assertStringContainsString($expected, $this->commandProcess->getOutput());
   }
 
   /**
@@ -547,22 +549,38 @@ abstract class BuildTestBase extends TestCase {
     $working_path = $this->getWorkingPath($working_dir);
 
     if ($iterator === NULL) {
-      $finder = new Finder();
-      $finder->files()
-        ->ignoreUnreadableDirs()
-        ->in($this->getDrupalRoot())
-        ->notPath('#^sites/default/files#')
-        ->notPath('#^sites/simpletest#')
-        ->notPath('#^vendor#')
-        ->notPath('#^sites/default/settings\..*php#')
-        ->ignoreDotFiles(FALSE)
-        ->ignoreVCS(FALSE);
-      $iterator = $finder->getIterator();
+      $iterator = $this->getCodebaseFinder()->getIterator();
     }
 
     $fs = new SymfonyFilesystem();
     $options = ['override' => TRUE, 'delete' => FALSE];
     $fs->mirror($this->getDrupalRoot(), $working_path, $iterator, $options);
+  }
+
+  /**
+   * Get a default Finder object for a Drupal codebase.
+   *
+   * This method can be used two ways:
+   * - Override this method and provide your own default Finder object for
+   *   copyCodebase().
+   * - Call the method to get a default Finder object which can then be
+   *   modified for other purposes.
+   *
+   * @return \Symfony\Component\Finder\Finder
+   *   A Finder object ready to iterate over core codebase.
+   */
+  public function getCodebaseFinder() {
+    $finder = new Finder();
+    $finder->files()
+      ->ignoreUnreadableDirs()
+      ->in($this->getDrupalRoot())
+      ->notPath('#^sites/default/files#')
+      ->notPath('#^sites/simpletest#')
+      ->notPath('#^vendor#')
+      ->notPath('#^sites/default/settings\..*php#')
+      ->ignoreDotFiles(FALSE)
+      ->ignoreVCS(FALSE);
+    return $finder;
   }
 
   /**

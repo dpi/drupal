@@ -15,11 +15,17 @@
     "drupalTranslations": true,
     "jQuery": true,
     "_": true,
+    "Cookies": true,
     "Backbone": true,
     "Modernizr": true,
     "Popper": true,
     "Sortable": true,
     "CKEDITOR": true
+  },
+  "settings": {
+    "react": {
+      "version": "latest"
+    }
   },
   "rules": {
     "prettier/prettier": "error",

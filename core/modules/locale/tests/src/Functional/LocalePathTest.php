@@ -22,7 +22,7 @@ class LocalePathTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['node', 'locale', 'path', 'views'];
+  protected static $modules = ['node', 'locale', 'path', 'views'];
 
   /**
    * {@inheritdoc}
@@ -32,7 +32,7 @@ class LocalePathTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->drupalCreateContentType(['type' => 'page', 'name' => 'Basic page']);
@@ -69,7 +69,7 @@ class LocalePathTest extends BrowserTestBase {
     // Check that the "xx" front page is readily available because path prefix
     // negotiation is pre-configured.
     $this->drupalGet($prefix);
-    $this->assertText(t('Welcome to Drupal'), 'The "xx" front page is readibly available.');
+    $this->assertText(t('Welcome to Drupal'), 'The "xx" front page is readily available.');
 
     // Create a node.
     $node = $this->drupalCreateNode(['type' => 'page']);
@@ -106,10 +106,10 @@ class LocalePathTest extends BrowserTestBase {
 
     // Check priority of language for alias by source path.
     $path_alias = $this->createPathAlias('/node/' . $node->id(), '/' . $custom_path, LanguageInterface::LANGCODE_NOT_SPECIFIED);
-    $lookup_path = $this->container->get('path.alias_manager')->getAliasByPath('/node/' . $node->id(), 'en');
+    $lookup_path = $this->container->get('path_alias.manager')->getAliasByPath('/node/' . $node->id(), 'en');
     $this->assertEqual('/' . $english_path, $lookup_path, 'English language alias has priority.');
     // Same check for language 'xx'.
-    $lookup_path = $this->container->get('path.alias_manager')->getAliasByPath('/node/' . $node->id(), $prefix);
+    $lookup_path = $this->container->get('path_alias.manager')->getAliasByPath('/node/' . $node->id(), $prefix);
     $this->assertEqual('/' . $custom_language_path, $lookup_path, 'Custom language alias has priority.');
     $path_alias->delete();
 

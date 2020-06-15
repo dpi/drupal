@@ -21,7 +21,7 @@ class HelpTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['help_test', 'help_page_test'];
+  protected static $modules = ['help_test', 'help_page_test'];
 
   /**
    * {@inheritdoc}
@@ -45,7 +45,7 @@ class HelpTest extends BrowserTestBase {
    */
   protected $anyUser;
 
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     // Create users.
@@ -114,7 +114,7 @@ class HelpTest extends BrowserTestBase {
    */
   protected function verifyHelp($response = 200) {
     $this->drupalGet('admin/index');
-    $this->assertResponse($response);
+    $this->assertSession()->statusCodeEquals($response);
     if ($response == 200) {
       $this->assertText('This page shows you all available administration tasks for each module.');
     }
@@ -125,9 +125,9 @@ class HelpTest extends BrowserTestBase {
     foreach ($this->getModuleList() as $module => $name) {
       // View module help page.
       $this->drupalGet('admin/help/' . $module);
-      $this->assertResponse($response);
+      $this->assertSession()->statusCodeEquals($response);
       if ($response == 200) {
-        $this->assertTitle($name . ' | Drupal', new FormattableMarkup('%module title was displayed', ['%module' => $module]));
+        $this->assertSession()->titleEquals("$name | Drupal");
         $this->assertEquals($name, $this->cssSelect('h1.page-title')[0]->getText(), "$module heading was displayed");
         $info = \Drupal::service('extension.list.module')->getExtensionInfo($module);
         $admin_tasks = system_get_module_admin_tasks($module, $info);
@@ -137,10 +137,10 @@ class HelpTest extends BrowserTestBase {
         foreach ($admin_tasks as $task) {
           $this->assertLink($task['title']);
           // Ensure there are no double escaped '&' or '<' characters.
-          $this->assertNoEscaped('&amp;', 'The help text does not have double escaped &amp;.');
-          $this->assertNoEscaped('&lt;', 'The help text does not have double escaped &lt;.');
+          $this->assertNoEscaped('&amp;');
+          $this->assertNoEscaped('&lt;');
           // Ensure there are no escaped '<' characters.
-          $this->assertNoEscaped('<', 'The help text does not have single escaped &lt;.');
+          $this->assertNoEscaped('<');
         }
         // Ensure there are no double escaped '&' or '<' characters.
         $this->assertNoEscaped('&amp;');

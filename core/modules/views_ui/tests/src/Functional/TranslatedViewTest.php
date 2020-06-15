@@ -16,7 +16,7 @@ class TranslatedViewTest extends UITestBase {
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'config_translation',
     'views_ui',
   ];
@@ -42,7 +42,7 @@ class TranslatedViewTest extends UITestBase {
    */
   protected $adminUser;
 
-  protected function setUp($import_test_views = TRUE) {
+  protected function setUp($import_test_views = TRUE): void {
     parent::setUp($import_test_views);
 
     $permissions = [
@@ -70,7 +70,7 @@ class TranslatedViewTest extends UITestBase {
 
     // Check the original string.
     $this->drupalGet($edit_url);
-    $this->assertTitle('Files (File) | Drupal');
+    $this->assertSession()->titleEquals('Files (File) | Drupal');
 
     // Translate the label of the view.
     $this->drupalGet($translation_url);
@@ -81,7 +81,7 @@ class TranslatedViewTest extends UITestBase {
 
     // Check if the label is translated.
     $this->drupalGet($edit_url, ['language' => \Drupal::languageManager()->getLanguage('fr')]);
-    $this->assertTitle('Files (File) | Drupal');
+    $this->assertSession()->titleEquals('Files (File) | Drupal');
     $this->assertNoText('Fichiers');
   }
 

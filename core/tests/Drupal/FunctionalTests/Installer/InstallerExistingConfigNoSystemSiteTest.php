@@ -12,11 +12,6 @@ class InstallerExistingConfigNoSystemSiteTest extends InstallerExistingConfigTes
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'stark';
-
-  /**
-   * {@inheritdoc}
-   */
   protected function prepareEnvironment() {
     parent::prepareEnvironment();
     // File API functions are not available yet.
@@ -35,7 +30,7 @@ class InstallerExistingConfigNoSystemSiteTest extends InstallerExistingConfigTes
    */
   public function testConfigSync() {
     $this->htmlOutput(NULL);
-    $this->assertTitle('Configuration validation | Drupal');
+    $this->assertSession()->titleEquals('Configuration validation | Drupal');
     $this->assertText('The configuration synchronization failed validation.');
     $this->assertText('This import does not contain system.site configuration, so has been rejected.');
 

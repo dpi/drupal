@@ -22,14 +22,20 @@ class FieldImportDeleteUninstallUiTest extends FieldTestBase {
    *
    * @var array
    */
-  public static $modules = ['entity_test', 'telephone', 'config', 'filter', 'datetime'];
+  protected static $modules = [
+    'entity_test',
+    'telephone',
+    'config',
+    'filter',
+    'datetime',
+  ];
 
   /**
    * {@inheritdoc}
    */
   protected $defaultTheme = 'stark';
 
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->drupalLogin($this->drupalCreateUser(['synchronize configuration']));
@@ -115,7 +121,7 @@ class FieldImportDeleteUninstallUiTest extends FieldTestBase {
     $this->rebuildContainer();
     $this->assertFalse(\Drupal::moduleHandler()->moduleExists('telephone'));
     $this->assertNull(\Drupal::service('entity.repository')->loadEntityByUuid('field_storage_config', $field_storage->uuid()), 'The telephone field has been deleted by the configuration synchronization');
-    $deleted_storages = \Drupal::state()->get('field.storage.deleted') ?: [];
+    $deleted_storages = \Drupal::state()->get('field.storage.deleted', []);
     $this->assertFalse(isset($deleted_storages[$field_storage->uuid()]), 'Telephone field has been completed removed from the system.');
     $this->assertFalse(isset($deleted_storages[$field_storage->uuid()]), 'Text field has been completed removed from the system.');
   }

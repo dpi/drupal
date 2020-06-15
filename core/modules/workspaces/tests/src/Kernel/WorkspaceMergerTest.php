@@ -45,12 +45,13 @@ class WorkspaceMergerTest extends KernelTestBase {
     'text',
     'user',
     'system',
+    'path_alias',
   ];
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->entityTypeManager = \Drupal::entityTypeManager();

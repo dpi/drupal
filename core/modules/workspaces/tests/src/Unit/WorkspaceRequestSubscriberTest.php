@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\workspaces\Unit;
 
-use Drupal\Core\Path\AliasManagerInterface;
+use Drupal\path_alias\AliasManagerInterface;
 use Drupal\Core\Path\CurrentPathStack;
 use Drupal\Core\Routing\CacheableRouteProviderInterface;
 use Drupal\Core\Routing\RouteProviderInterface;
@@ -10,7 +10,7 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\workspaces\EventSubscriber\WorkspaceRequestSubscriber;
 use Drupal\workspaces\WorkspaceInterface;
 use Drupal\workspaces\WorkspaceManagerInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 /**
  * @coversDefaultClass \Drupal\workspaces\EventSubscriber\WorkspaceRequestSubscriber
@@ -20,7 +20,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 class WorkspaceRequestSubscriberTest extends UnitTestCase {
 
   /**
-   * @var \Drupal\Core\Path\AliasManagerInterface
+   * @var \Drupal\path_alias\AliasManagerInterface
    */
   protected $aliasManager;
 
@@ -37,7 +37,7 @@ class WorkspaceRequestSubscriberTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->aliasManager = $this->prophesize(AliasManagerInterface::class)->reveal();
@@ -61,7 +61,7 @@ class WorkspaceRequestSubscriberTest extends UnitTestCase {
     // addExtraCacheKeyPart() on a route provider that implements
     // CacheableRouteProviderInterface.
     $workspace_request_subscriber = new WorkspaceRequestSubscriber($this->aliasManager, $this->currentPath, $route_provider->reveal(), $this->workspaceManager->reveal());
-    $event = $this->prophesize(GetResponseEvent::class)->reveal();
+    $event = $this->prophesize(RequestEvent::class)->reveal();
     $this->assertNull($workspace_request_subscriber->onKernelRequest($event));
   }
 
@@ -75,7 +75,7 @@ class WorkspaceRequestSubscriberTest extends UnitTestCase {
     // addExtraCacheKeyPart() on a route provider that does not implement
     // CacheableRouteProviderInterface.
     $workspace_request_subscriber = new WorkspaceRequestSubscriber($this->aliasManager, $this->currentPath, $route_provider->reveal(), $this->workspaceManager->reveal());
-    $event = $this->prophesize(GetResponseEvent::class)->reveal();
+    $event = $this->prophesize(RequestEvent::class)->reveal();
     $this->assertNull($workspace_request_subscriber->onKernelRequest($event));
   }
 

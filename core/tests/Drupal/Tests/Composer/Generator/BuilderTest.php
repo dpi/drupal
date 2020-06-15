@@ -6,6 +6,7 @@ use Drupal\Composer\Generator\Builder\DrupalCoreRecommendedBuilder;
 use Drupal\Composer\Generator\Builder\DrupalDevDependenciesBuilder;
 use Drupal\Composer\Generator\Builder\DrupalPinnedDevDependenciesBuilder;
 use PHPUnit\Framework\TestCase;
+use Drupal\Composer\Composer;
 
 /**
  * Test DrupalCoreRecommendedBuilder
@@ -28,7 +29,7 @@ class BuilderTest extends TestCase {
           'license' => 'GPL-2.0-or-later',
           'require' =>
           [
-            'drupal/core' => 'self.version',
+            'drupal/core' => Composer::drupalVersionBranch(),
             'symfony/polyfill-ctype' => 'v1.12.0',
             'symfony/yaml' => 'v3.4.32',
           ],
@@ -48,7 +49,7 @@ class BuilderTest extends TestCase {
           'license' => 'GPL-2.0-or-later',
           'require' =>
           [
-            'behat/mink' => '1.8.0 | 1.7.1.1 | 1.7.x-dev',
+            'behat/mink' => '^1.8',
           ],
           'conflict' =>
           [
@@ -66,8 +67,8 @@ class BuilderTest extends TestCase {
           'license' => 'GPL-2.0-or-later',
           'require' =>
           [
-            'drupal/core' => 'self.version',
-            'behat/mink' => '1.8.0 | 1.7.1.1 | 1.7.x-dev',
+            'drupal/core' => Composer::drupalVersionBranch(),
+            'behat/mink' => 'v1.8.0',
             'symfony/css-selector' => 'v4.3.5',
           ],
           'conflict' =>

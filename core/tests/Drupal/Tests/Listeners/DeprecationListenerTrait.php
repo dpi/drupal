@@ -112,12 +112,12 @@ trait DeprecationListenerTrait {
     }
     $dynamic_skipped_deprecations = [
       '%The "[^"]+" class extends "Symfony\\\\Component\\\\EventDispatcher\\\\Event" that is deprecated since Symfony 4\.3, use "Symfony\\\\Contracts\\\\EventDispatcher\\\\Event" instead\.$%',
-      '%The "Symfony\\\\Component\\\\Routing\\\\(Compiled)?Route::(un)?serialize\(\)" method is considered (final|internal) since Symfony 4\.3\. It may change without further notice( as of its next major version)?\. You should not extend it from "[^"]+"\.%',
       '%The "Symfony\\\\Component\\\\Validator\\\\Context\\\\ExecutionContextInterface::.*\(\)" method is considered internal Used by the validator engine. Should not be called by user\s\*\s*code\. It may change without further notice\. You should not extend it from "[^"]+".%',
-      '%Non-object services are deprecated since Symfony 4\.4, please fix the ".*" service which is of type ".*" right now\.%',
-      '%Non-object services are deprecated since Symfony 4\.4, setting the ".*" service to a value of type ".*" should be avoided\.%',
-      '%The ".*" service relies on the deprecated "Symfony\\\\Component\\\\Debug\\\\BufferingLogger" class\. It should either be deprecated or its implementation upgraded\.%',
-      '%Method ".*::.*\(\)" will return ".*" as of its next major version\. Doing the same in child class ".*" will be required when upgrading\.%',
+      '%The "PHPUnit\\\\Framework\\\\TestCase::addWarning\(\)" method is considered internal%',
+      // The following deprecations were not added as part of the original
+      // issues and thus were not addressed in time for the 9.0.0 release.
+      '%The entity link url update for the "\w+" view is deprecated in drupal:9.0.0 and is removed from drupal:10.0.0. Module-provided Views configuration should be updated to accommodate the changes described at https://www.drupal.org/node/2857891.%',
+      '%The operator defaults update for the "\w+" view is deprecated in drupal:9.0.0 and is removed from drupal:10.0.0. Module-provided Views configuration should be updated to accommodate the changes described at https://www.drupal.org/node/2869168.%',
     ];
     return (bool) preg_filter($dynamic_skipped_deprecations, '$0', $message);
   }
@@ -140,34 +140,8 @@ trait DeprecationListenerTrait {
    */
   public static function getSkippedDeprecations() {
     return [
-      'MigrateCckField is deprecated in Drupal 8.3.x and will be removed before Drupal 9.0.x. Use \Drupal\migrate_drupal\Annotation\MigrateField instead.',
-      'MigrateCckFieldPluginManager is deprecated in Drupal 8.3.x and will be removed before Drupal 9.0.x. Use \Drupal\migrate_drupal\Annotation\MigrateFieldPluginManager instead.',
-      'MigrateCckFieldPluginManagerInterface is deprecated in Drupal 8.3.x and will be removed before Drupal 9.0.x. Use \Drupal\migrate_drupal\Annotation\MigrateFieldPluginManagerInterface instead.',
-      'The "plugin.manager.migrate.cckfield" service is deprecated. You should use the \'plugin.manager.migrate.field\' service instead. See https://www.drupal.org/node/2751897',
-      'Passing in arguments the legacy way is deprecated in Drupal 8.4.0 and will be removed before Drupal 9.0.0. Provide the right parameter names in the method, similar to controllers. See https://www.drupal.org/node/2894819',
-      'The "serializer.normalizer.file_entity.hal" normalizer service is deprecated: it is obsolete, it only remains available for backwards compatibility.',
-      'The Symfony\Component\ClassLoader\ApcClassLoader class is deprecated since Symfony 3.3 and will be removed in 4.0. Use `composer install --apcu-autoloader` instead.',
-      // The following deprecation is not triggered by DrupalCI testing since it
-      // is a Windows only deprecation. Remove when core no longer uses
-      // WinCacheClassLoader in \Drupal\Core\DrupalKernel::initializeSettings().
-      'The Symfony\Component\ClassLoader\WinCacheClassLoader class is deprecated since Symfony 3.3 and will be removed in 4.0. Use `composer install --apcu-autoloader` instead.',
       // The following deprecation message is skipped for testing purposes.
       '\Drupal\Tests\SkippedDeprecationTest deprecation',
-      // These deprecations are triggered by symfony/psr-http-message-factory
-      // 1.2, which can be installed if you update dependencies on php 7 or
-      // higher.
-      'The "Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory" class is deprecated since symfony/psr-http-message-bridge 1.2, use PsrHttpFactory instead.',
-      'The "psr7.http_message_factory" service relies on the deprecated "Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory" class. It should either be deprecated or its implementation upgraded.',
-      // This deprecation comes from behat/mink-browserkit-driver when updating
-      // symfony/browser-kit to 4.3+.
-      'The "Symfony\Component\BrowserKit\Response::getStatus()" method is deprecated since Symfony 4.3, use getStatusCode() instead.',
-      // The following deprecations are introduced in by the new
-      // DebugClassLoader in Symfony 4 we cannot immediately fix them without
-      // breaking backwards compatibility.
-      // @see https://www.drupal.org/project/drupal/issues/3030494
-      // @see https://www.drupal.org/project/drupal/issues/3030474
-      'The "Drupal\Core\Template\Loader\StringLoader" class implements "Twig\Loader\ExistsLoaderInterface" that is deprecated since 1.12 (to be removed in 3.0).',
-      'The "Drupal\Core\Template\Loader\StringLoader" class implements "Twig\Loader\SourceContextLoaderInterface" that is deprecated since 1.27 (to be removed in 3.0).',
       // The following Symfony deprecations are introduced in the Symfony 4
       // development cycle. They will need to be resolved prior to Symfony 5
       // compatibility.
@@ -178,15 +152,9 @@ trait DeprecationListenerTrait {
       'The "Symfony\Component\HttpFoundation\File\MimeType\FileinfoMimeTypeGuesser" class is deprecated since Symfony 4.3, use "Symfony\Component\Mime\FileinfoMimeTypeGuesser" instead.',
       'The signature of the "Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher::dispatch()" method should be updated to "dispatch($event, string $eventName = null)", not doing so is deprecated since Symfony 4.3.',
       'Calling the "Symfony\Component\EventDispatcher\EventDispatcherInterface::dispatch()" method with the event name as the first argument is deprecated since Symfony 4.3, pass it as the second argument and provide the event object as the first argument instead.',
+      'The "Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher::dispatch()" method will require a new "string|null $eventName" argument in the next major version of its interface "Symfony\Contracts\EventDispatcher\EventDispatcherInterface", not defining it is deprecated.',
       'The "Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher::dispatch()" method will require a new "string|null $eventName" argument in the next major version of its parent class "Symfony\Contracts\EventDispatcher\EventDispatcherInterface", not defining it is deprecated.',
-      'The "Goutte\Client" class extends "Symfony\Component\BrowserKit\Client" that is deprecated since Symfony 4.3, use "\Symfony\Component\BrowserKit\AbstractBrowser" instead.',
       'Passing a command as string when creating a "Symfony\Component\Process\Process" instance is deprecated since Symfony 4.2, pass it as an array of its arguments instead, or use the "Process::fromShellCommandline()" constructor if you need features provided by the shell.',
-      'Passing arguments to "Symfony\Component\HttpFoundation\Request::isMethodSafe()" has been deprecated since Symfony 4.4; use "Symfony\Component\HttpFoundation\Request::isMethodCacheable()" to check if the method is cacheable instead.',
-      'The "Symfony\Component\Process\Process::inheritEnvironmentVariables()" method is deprecated since Symfony 4.4, env variables are always inherited.',
-      'The "Symfony\Component\Debug\BufferingLogger" class is deprecated since Symfony 4.4, use "Symfony\Component\ErrorHandler\BufferingLogger" instead.',
-      'Using the "Symfony\Component\Validator\Constraints\Length" constraint with the "min" option without setting the "allowEmptyString" one is deprecated and defaults to true. In 5.0, it will become optional and default to false.',
-      'The "core/jquery.ui.checkboxradio" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3067969',
-      'The "core/jquery.ui.controlgroup" asset library is deprecated in drupal:8.8.0 and is removed from drupal:9.0.0. See https://www.drupal.org/node/3067969',
       // The following deprecation is listed for Twig 2 compatibility when unit
       // testing using \Symfony\Component\ErrorHandler\DebugClassLoader.
       'The "Twig\Environment::getTemplateClass()" method is considered internal. It may change without further notice. You should not extend it from "Drupal\Core\Template\TwigEnvironment".',

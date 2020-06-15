@@ -4,7 +4,7 @@ namespace Drupal\Tests\path_alias\Unit;
 
 use Drupal\Core\Language\Language;
 use Drupal\Core\Language\LanguageInterface;
-use Drupal\Core\Path\AliasRepositoryInterface;
+use Drupal\path_alias\AliasRepositoryInterface;
 use Drupal\path_alias\AliasManager;
 use Drupal\Tests\UnitTestCase;
 
@@ -22,16 +22,9 @@ class AliasManagerTest extends UnitTestCase {
   protected $aliasManager;
 
   /**
-   * Alias storage.
-   *
-   * @var \Drupal\Core\Path\AliasStorageInterface|\PHPUnit\Framework\MockObject\MockObject
-   */
-  protected $aliasStorage;
-
-  /**
    * Alias repository.
    *
-   * @var \Drupal\Core\Path\AliasRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\path_alias\AliasRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $aliasRepository;
 
@@ -73,7 +66,7 @@ class AliasManagerTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->aliasRepository = $this->createMock(AliasRepositoryInterface::class);

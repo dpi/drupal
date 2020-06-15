@@ -77,15 +77,11 @@ class FileUploadForm extends AddFormBase {
    * @param \Drupal\file\FileUsage\FileUsageInterface $file_usage
    *   The file usage service.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, MediaLibraryUiBuilder $library_ui_builder, ElementInfoManagerInterface $element_info, RendererInterface $renderer, FileSystemInterface $file_system, OpenerResolverInterface $opener_resolver = NULL, FileUsageInterface $file_usage = NULL) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, MediaLibraryUiBuilder $library_ui_builder, ElementInfoManagerInterface $element_info, RendererInterface $renderer, FileSystemInterface $file_system, OpenerResolverInterface $opener_resolver, FileUsageInterface $file_usage) {
     parent::__construct($entity_type_manager, $library_ui_builder, $opener_resolver);
     $this->elementInfo = $element_info;
     $this->renderer = $renderer;
     $this->fileSystem = $file_system;
-    if (!$file_usage) {
-      @trigger_error('Calling FileUploadForm::__construct() without the `file.usage` service is deprecated in drupal:8.8.0 and is removed in drupal:9.0.0. Pass the `file.usage` service to the constructor. See https://www.drupal.org/node/3075165', E_USER_DEPRECATED);
-      $file_usage = \Drupal::service('file.usage');
-    }
     $this->fileUsage = $file_usage;
   }
 
@@ -241,6 +237,52 @@ class FileUploadForm extends AddFormBase {
         ],
       ],
     ];
+    return $element;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function buildEntityFormElement(MediaInterface $media, array $form, FormStateInterface $form_state, $delta) {
+    $element = parent::buildEntityFormElement($media, $form, $form_state, $delta);
+    $source_field = $this->getSourceFieldName($media->bundle->entity);
+    if (isset($element['fields'][$source_field])) {
+      $element['fields'][$source_field]['widget'][0]['#process'][] = [static::class, 'hideExtraSourceFieldComponents'];
+    }
+    return $element;
+  }
+
+  /**
+   * Processes an image or file source field element.
+   *
+   * @param array $element
+   *   The entity form source field element.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current form state.
+   * @param $form
+   *   The complete form.
+   *
+   * @return array
+   *   The processed form element.
+   */
+  public static function hideExtraSourceFieldComponents($element, FormStateInterface $form_state, $form) {
+    // Remove original button added by ManagedFile::processManagedFile().
+    if (!empty($element['remove_button'])) {
+      $element['remove_button']['#access'] = FALSE;
+    }
+    // Remove preview added by ImageWidget::process().
+    if (!empty($element['preview'])) {
+      $element['preview']['#access'] = FALSE;
+    }
+
+    $element['#title_display'] = 'none';
+    $element['#description_display'] = 'none';
+
+    // Remove the filename display.
+    foreach ($element['#files'] as $file) {
+      $element['file_' . $file->id()]['filename']['#access'] = FALSE;
+    }
+
     return $element;
   }
 

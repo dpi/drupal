@@ -17,7 +17,7 @@ class FrontPageTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['node', 'system_test', 'views'];
+  protected static $modules = ['node', 'system_test', 'views'];
 
   /**
    * {@inheritdoc}
@@ -31,7 +31,7 @@ class FrontPageTest extends BrowserTestBase {
    */
   protected $nodePath;
 
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     // Create admin user, log in admin user, and create one node.
@@ -59,7 +59,7 @@ class FrontPageTest extends BrowserTestBase {
     ];
     $this->drupalCreateNode($settings);
     $this->drupalGet('');
-    $this->assertTitle('Home | Drupal');
+    $this->assertSession()->titleEquals('Home | Drupal');
 
     $this->assertText(t('On front page.'), 'Path is the front page.');
     $this->drupalGet('node');

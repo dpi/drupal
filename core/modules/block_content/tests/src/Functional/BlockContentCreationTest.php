@@ -21,7 +21,7 @@ class BlockContentCreationTest extends BlockContentTestBase {
    *
    * @var array
    */
-  public static $modules = ['block_content_test', 'dblog', 'field_ui'];
+  protected static $modules = ['block_content_test', 'dblog', 'field_ui'];
 
   /**
    * {@inheritdoc}
@@ -41,7 +41,7 @@ class BlockContentCreationTest extends BlockContentTestBase {
   /**
    * Sets the test up.
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     $this->drupalLogin($this->adminUser);
   }
@@ -82,7 +82,7 @@ class BlockContentCreationTest extends BlockContentTestBase {
     $this->assertRaw(new FormattableMarkup('A custom block with block description %value already exists.', [
       '%value' => $edit['info[0][value]'],
     ]));
-    $this->assertResponse(200);
+    $this->assertSession()->statusCodeEquals(200);
   }
 
   /**
@@ -130,8 +130,10 @@ class BlockContentCreationTest extends BlockContentTestBase {
     $this->drupalGet('admin/structure/block/manage/testblock');
 
     // Test the available view mode options.
-    $this->assertOption('edit-settings-view-mode', 'default', 'The default view mode is available.');
-    $this->assertOption('edit-settings-view-mode', 'test_view_mode', 'The test view mode is available.');
+    // Verify that the default view mode is available.
+    $this->assertSession()->optionExists('edit-settings-view-mode', 'default');
+    // Verify that the test view mode is available.
+    $this->assertSession()->optionExists('edit-settings-view-mode', 'test_view_mode');
 
     $view_mode['settings[view_mode]'] = 'test_view_mode';
     $this->drupalPostForm(NULL, $view_mode, t('Save block'));
@@ -164,7 +166,7 @@ class BlockContentCreationTest extends BlockContentTestBase {
     $this->assertRaw(new FormattableMarkup('A custom block with block description %value already exists.', [
       '%value' => $edit['info[0][value]'],
     ]));
-    $this->assertResponse(200);
+    $this->assertSession()->statusCodeEquals(200);
   }
 
   /**
@@ -208,28 +210,14 @@ class BlockContentCreationTest extends BlockContentTestBase {
     }
 
     $connection = Database::getConnection();
-    if ($connection->supportsTransactions()) {
-      // Check that the block does not exist in the database.
-      $id = $connection->select('block_content_field_data', 'b')
-        ->fields('b', ['id'])
-        ->condition('info', 'fail_creation')
-        ->execute()
-        ->fetchField();
-      $this->assertFalse($id, 'Transactions supported, and block not found in database.');
-    }
-    else {
-      // Check that the block exists in the database.
-      $id = $connection->select('block_content_field_data', 'b')
-        ->fields('b', ['id'])
-        ->condition('info', 'fail_creation')
-        ->execute()
-        ->fetchField();
-      $this->assertTrue($id, 'Transactions not supported, and block found in database.');
 
-      // Check that the failed rollback was logged.
-      $records = $connection->query("SELECT wid FROM {watchdog} WHERE message LIKE 'Explicit rollback failed%'")->fetchAll();
-      $this->assertTrue(count($records) > 0, 'Transactions not supported, and rollback error logged to watchdog.');
-    }
+    // Check that the block does not exist in the database.
+    $id = $connection->select('block_content_field_data', 'b')
+      ->fields('b', ['id'])
+      ->condition('info', 'fail_creation')
+      ->execute()
+      ->fetchField();
+    $this->assertFalse($id);
   }
 
   /**
@@ -256,7 +244,7 @@ class BlockContentCreationTest extends BlockContentTestBase {
     $block = BlockContent::load(1);
 
     // Test getInstances method.
-    $this->assertEqual(1, count($block->getInstances()));
+    $this->assertCount(1, $block->getInstances());
 
     // Navigate to home page.
     $this->drupalGet('');

@@ -26,14 +26,22 @@ class MenuUiNodeTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['menu_ui', 'test_page_test', 'node', 'block', 'locale', 'language', 'content_translation'];
+  protected static $modules = [
+    'menu_ui',
+    'test_page_test',
+    'node',
+    'block',
+    'locale',
+    'language',
+    'content_translation',
+  ];
 
   /**
    * {@inheritdoc}
    */
   protected $defaultTheme = 'stark';
 
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->drupalPlaceBlock('system_menu_block:main');
@@ -222,7 +230,7 @@ class MenuUiNodeTest extends BrowserTestBase {
     // Assert that the link is still in the Administration menu after save.
     $this->drupalPostForm('node/' . $node->id() . '/edit', $edit, t('Save'));
     $link = MenuLinkContent::load($item->id());
-    $this->assertInstanceOf(MenuLinkContent::class, $link, 'Link in not allowed menu still exists after saving node');
+    $this->assertInstanceOf(MenuLinkContent::class, $link);
 
     // Move the menu link back to the Tools menu.
     $item->menu_name->value = 'tools';
@@ -240,10 +248,10 @@ class MenuUiNodeTest extends BrowserTestBase {
     // Edit the first node.
     $this->drupalGet('node/' . $node->id() . '/edit');
     // Assert that it is not possible to set the parent of the first node to itself or the second node.
-    $this->assertNoOption('edit-menu-menu-parent', 'tools:' . $item->getPluginId());
-    $this->assertNoOption('edit-menu-menu-parent', 'tools:' . $child_item->getPluginId());
+    $this->assertSession()->optionNotExists('edit-menu-menu-parent', 'tools:' . $item->getPluginId());
+    $this->assertSession()->optionNotExists('edit-menu-menu-parent', 'tools:' . $child_item->getPluginId());
     // Assert that unallowed Administration menu is not available in options.
-    $this->assertNoOption('edit-menu-menu-parent', 'admin:');
+    $this->assertSession()->optionNotExists('edit-menu-menu-parent', 'admin:');
   }
 
   /**

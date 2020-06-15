@@ -21,7 +21,7 @@ class ConfigEntityListTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['block', 'config_test'];
+  protected static $modules = ['block', 'config_test'];
 
   /**
    * {@inheritdoc}
@@ -31,7 +31,7 @@ class ConfigEntityListTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     // Delete the override config_test entity since it is not required by this
     // test.
@@ -46,7 +46,7 @@ class ConfigEntityListTest extends BrowserTestBase {
     $controller = \Drupal::entityTypeManager()->getListBuilder('config_test');
 
     // Test getStorage() method.
-    $this->assertInstanceOf(EntityStorageInterface::class, $controller->getStorage(), 'EntityStorage instance in storage.');
+    $this->assertInstanceOf(EntityStorageInterface::class, $controller->getStorage());
 
     // Get a list of ConfigTest entities and confirm that it contains the
     // ConfigTest entity provided by the config_test module.
@@ -54,7 +54,7 @@ class ConfigEntityListTest extends BrowserTestBase {
     $list = $controller->load();
     $this->assertCount(1, $list, '1 ConfigTest entity found.');
     $entity = $list['dotted.default'];
-    $this->assertInstanceOf(ConfigTest::class, $entity, '"Default" ConfigTest entity is an instance of ConfigTest.');
+    $this->assertInstanceOf(ConfigTest::class, $entity);
 
     // Test getOperations() method.
     $expected_operations = [
@@ -162,7 +162,7 @@ class ConfigEntityListTest extends BrowserTestBase {
     $this->drupalGet('admin/structure/config_test');
 
     // Test for the page title.
-    $this->assertTitle('Test configuration | Drupal');
+    $this->assertSession()->titleEquals('Test configuration | Drupal');
 
     // Test for the table.
     $element = $this->xpath('//div[@class="layout-content"]//table');
@@ -192,7 +192,7 @@ class ConfigEntityListTest extends BrowserTestBase {
     // Add a new entity using the operations link.
     $this->assertLink('Add test configuration');
     $this->clickLink('Add test configuration');
-    $this->assertResponse(200);
+    $this->assertSession()->statusCodeEquals(200);
     $edit = [
       'label' => 'Antelope',
       'id' => 'antelope',
@@ -212,8 +212,8 @@ class ConfigEntityListTest extends BrowserTestBase {
     // Edit the entity using the operations link.
     $this->assertLinkByHref('admin/structure/config_test/manage/antelope');
     $this->clickLink('Edit', 1);
-    $this->assertResponse(200);
-    $this->assertTitle('Edit Antelope | Drupal');
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->titleEquals('Edit Antelope | Drupal');
     $edit = ['label' => 'Albatross', 'id' => 'albatross'];
     $this->drupalPostForm(NULL, $edit, t('Save'));
 
@@ -226,8 +226,8 @@ class ConfigEntityListTest extends BrowserTestBase {
     // Delete the added entity using the operations link.
     $this->assertLinkByHref('admin/structure/config_test/manage/albatross/delete');
     $this->clickLink('Delete', 1);
-    $this->assertResponse(200);
-    $this->assertTitle('Are you sure you want to delete the test configuration Albatross? | Drupal');
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->titleEquals('Are you sure you want to delete the test configuration Albatross? | Drupal');
     $this->drupalPostForm(NULL, [], t('Delete'));
 
     // Verify that the text of the label and machine name does not appear in
@@ -237,8 +237,8 @@ class ConfigEntityListTest extends BrowserTestBase {
 
     // Delete the original entity using the operations link.
     $this->clickLink('Delete');
-    $this->assertResponse(200);
-    $this->assertTitle('Are you sure you want to delete the test configuration Default? | Drupal');
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->titleEquals('Are you sure you want to delete the test configuration Default? | Drupal');
     $this->drupalPostForm(NULL, [], t('Delete'));
 
     // Verify that the text of the label and machine name does not appear in

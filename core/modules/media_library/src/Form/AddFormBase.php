@@ -72,14 +72,10 @@ abstract class AddFormBase extends FormBase implements BaseFormIdInterface, Trus
    * @param \Drupal\media_library\OpenerResolverInterface $opener_resolver
    *   The opener resolver.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, MediaLibraryUiBuilder $library_ui_builder, OpenerResolverInterface $opener_resolver = NULL) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, MediaLibraryUiBuilder $library_ui_builder, OpenerResolverInterface $opener_resolver) {
     $this->entityTypeManager = $entity_type_manager;
     $this->libraryUiBuilder = $library_ui_builder;
     $this->viewBuilder = $this->entityTypeManager->getViewBuilder('media');
-    if (!$opener_resolver) {
-      @trigger_error('The media_library.opener_resolver service must be passed to AddFormBase::__construct(), it is required before Drupal 9.0.0.', E_USER_DEPRECATED);
-      $opener_resolver = \Drupal::service('media_library.opener_resolver');
-    }
     $this->openerResolver = $opener_resolver;
   }
 
@@ -328,11 +324,8 @@ abstract class AddFormBase extends FormBase implements BaseFormIdInterface, Trus
     }
     $form_display->buildForm($media, $element['fields'], $form_state);
 
-    // We hide the preview of the uploaded file in the image widget with CSS, so
-    // set a property so themes and form_alter hooks can easily identify the
-    // source field.
-    // @todo Improve hiding file widget elements in
-    //   https://www.drupal.org/project/drupal/issues/2987921
+    // Add source field name so that it can be identified in form alter and
+    // widget alter hooks.
     $element['fields']['#source_field_name'] = $this->getSourceFieldName($media->bundle->entity);
 
     // The revision log field is currently not configurable from the form
@@ -346,7 +339,7 @@ abstract class AddFormBase extends FormBase implements BaseFormIdInterface, Trus
   }
 
   /**
-   * {@inheritdodc}
+   * {@inheritdoc}
    */
   public static function trustedCallbacks() {
     return ['preRenderAddedMedia'];
@@ -479,13 +472,11 @@ abstract class AddFormBase extends FormBase implements BaseFormIdInterface, Trus
     if ($this->isAdvancedUi()) {
       $actions['save_select']['#value'] = $this->t('Save and select');
       $actions['save_insert'] = [
-        'save_insert' => [
-          '#type' => 'submit',
-          '#value' => $this->t('Save and insert'),
-          '#ajax' => [
-            'callback' => '::updateWidget',
-            'wrapper' => 'media-library-add-form-wrapper',
-          ],
+        '#type' => 'submit',
+        '#value' => $this->t('Save and insert'),
+        '#ajax' => [
+          'callback' => '::updateWidget',
+          'wrapper' => 'media-library-add-form-wrapper',
         ],
       ];
     }
@@ -513,7 +504,12 @@ abstract class AddFormBase extends FormBase implements BaseFormIdInterface, Trus
     $form_state->set('media', array_values($media));
     // Save the selected items in the form state so they are remembered when an
     // item is removed.
-    $form_state->set('current_selection', array_filter(explode(',', $form_state->getValue('current_selection'))));
+    $media = $this->entityTypeManager->getStorage('media')
+      ->loadMultiple(explode(',', $form_state->getValue('current_selection')));
+    // Any ID can be passed to the form, so we have to check access.
+    $form_state->set('current_selection', array_filter($media, function ($media_item) {
+      return $media_item->access('view');
+    }));
     $form_state->setRebuild();
   }
 
@@ -809,13 +805,9 @@ abstract class AddFormBase extends FormBase implements BaseFormIdInterface, Trus
    *   An array containing the pre-selected media items keyed by ID.
    */
   protected function getPreSelectedMediaItems(FormStateInterface $form_state) {
-    // Get the current selection from the form state.
+    // Get the pre-selected media items from the form state.
     // @see ::processInputValues()
-    $media_ids = $form_state->get('current_selection');
-    if (!$media_ids) {
-      return [];
-    }
-    return $this->entityTypeManager->getStorage('media')->loadMultiple($media_ids);
+    return $form_state->get('current_selection') ?: [];
   }
 
   /**
@@ -826,7 +818,7 @@ abstract class AddFormBase extends FormBase implements BaseFormIdInterface, Trus
    *
    * @return \Drupal\media\MediaInterface[]
    *   An array containing the added media items keyed by delta. The media items
-   *   won't have an ID untill they are saved in ::submitForm().
+   *   won't have an ID until they are saved in ::submitForm().
    */
   protected function getAddedMediaItems(FormStateInterface $form_state) {
     return $form_state->get('media') ?: [];

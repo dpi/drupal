@@ -81,65 +81,6 @@ class TwigExtension extends AbstractExtension {
   }
 
   /**
-   * Sets the URL generator.
-   *
-   * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
-   *   The URL generator.
-   *
-   * @return $this
-   *
-   * @deprecated in Drupal 8.0.x-dev, will be removed before Drupal 9.0.0.
-   */
-  public function setGenerators(UrlGeneratorInterface $url_generator) {
-    return $this->setUrlGenerator($url_generator);
-  }
-
-  /**
-   * Sets the URL generator.
-   *
-   * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
-   *   The URL generator.
-   *
-   * @return $this
-   *
-   * @deprecated in Drupal 8.3.x-dev, will be removed before Drupal 9.0.0.
-   */
-  public function setUrlGenerator(UrlGeneratorInterface $url_generator) {
-    $this->urlGenerator = $url_generator;
-    return $this;
-  }
-
-  /**
-   * Sets the theme manager.
-   *
-   * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
-   *   The theme manager.
-   *
-   * @return $this
-   *
-   * @deprecated in Drupal 8.3.x-dev, will be removed before Drupal 9.0.0.
-   */
-  public function setThemeManager(ThemeManagerInterface $theme_manager) {
-    $this->themeManager = $theme_manager;
-    return $this;
-  }
-
-  /**
-   * Sets the date formatter.
-   *
-   * @param \Drupal\Core\Datetime\DateFormatter $date_formatter
-   *   The date formatter.
-   *
-   * @return $this
-   *
-   * @deprecated in Drupal 8.3.x-dev, will be removed before Drupal 9.0.0.
-   */
-  public function setDateFormatter(DateFormatterInterface $date_formatter) {
-    $this->dateFormatter = $date_formatter;
-    return $this;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function getFunctions() {
@@ -659,8 +600,9 @@ class TwigExtension extends AbstractExtension {
    *
    * @param array|object $element
    *   The parent renderable array to exclude the child items.
-   * @param string[] ...
-   *   The string keys of $element to prevent printing.
+   * @param string[]|string ...
+   *   The string keys of $element to prevent printing. Arguments can include
+   *   string keys directly, or arrays of string keys to hide.
    *
    * @return array
    *   The filtered renderable array.
@@ -674,10 +616,12 @@ class TwigExtension extends AbstractExtension {
     }
     $args = func_get_args();
     unset($args[0]);
-    foreach ($args as $arg) {
-      if (isset($filtered_element[$arg])) {
-        unset($filtered_element[$arg]);
-      }
+    // Since the remaining arguments can be a mix of arrays and strings, we use
+    // some native PHP iterator classes to allow us to recursively iterate over
+    // everything in a single pass.
+    $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($args));
+    foreach ($iterator as $key) {
+      unset($filtered_element[$key]);
     }
     return $filtered_element;
   }

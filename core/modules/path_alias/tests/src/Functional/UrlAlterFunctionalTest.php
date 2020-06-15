@@ -23,7 +23,7 @@ class UrlAlterFunctionalTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['path', 'forum', 'url_alter_test'];
+  protected static $modules = ['path', 'forum', 'url_alter_test'];
 
   /**
    * {@inheritdoc}
@@ -47,7 +47,7 @@ class UrlAlterFunctionalTest extends BrowserTestBase {
 
     // Test a single altered path.
     $this->drupalGet("user/$name");
-    $this->assertResponse('200', 'The user/username path gets resolved correctly');
+    $this->assertSession()->statusCodeEquals(200);
     $this->assertUrlOutboundAlter("/user/$uid", "/user/$name");
 
     // Test that a path always uses its alias.
@@ -61,7 +61,7 @@ class UrlAlterFunctionalTest extends BrowserTestBase {
     $this->drupalPostForm('admin/config/search/path/add', $edit, t('Save'));
     $this->assertText(t('The alias has been saved.'));
     $this->drupalGet('alias/test2');
-    $this->assertResponse('200', 'The path alias gets resolved correctly');
+    $this->assertSession()->statusCodeEquals(200);
     $this->assertUrlOutboundAlter("/user/$uid/edit", '/alias/test2');
 
     // Test a non-existent user is not altered.
@@ -119,7 +119,7 @@ class UrlAlterFunctionalTest extends BrowserTestBase {
    */
   protected function assertUrlInboundAlter($original, $final) {
     // Test inbound altering.
-    $result = $this->container->get('path.alias_manager')->getPathByAlias($original);
+    $result = $this->container->get('path_alias.manager')->getPathByAlias($original);
     return $this->assertIdentical($result, $final, new FormattableMarkup('Altered inbound URL %original, expected %final, and got %result.', ['%original' => $original, '%final' => $final, '%result' => $result]));
   }
 

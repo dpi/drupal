@@ -18,7 +18,7 @@ class FieldUIRouteTest extends BrowserTestBase {
    *
    * @var string[]
    */
-  public static $modules = ['block', 'entity_test', 'field_ui'];
+  protected static $modules = ['block', 'entity_test', 'field_ui'];
 
   /**
    * {@inheritdoc}
@@ -28,7 +28,7 @@ class FieldUIRouteTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->drupalLogin($this->rootUser);
@@ -43,38 +43,38 @@ class FieldUIRouteTest extends BrowserTestBase {
     $this->assertText('No fields are present yet.');
 
     $this->drupalGet('admin/config/people/accounts/fields');
-    $this->assertTitle('Manage fields | Drupal');
+    $this->assertSession()->titleEquals('Manage fields | Drupal');
     $this->assertLocalTasks();
 
     // Test manage display tabs and titles.
     $this->drupalGet('admin/config/people/accounts/display/compact');
-    $this->assertResponse(403);
+    $this->assertSession()->statusCodeEquals(403);
 
     $this->drupalGet('admin/config/people/accounts/display');
-    $this->assertTitle('Manage display | Drupal');
+    $this->assertSession()->titleEquals('Manage display | Drupal');
     $this->assertLocalTasks();
 
     $edit = ['display_modes_custom[compact]' => TRUE];
     $this->drupalPostForm(NULL, $edit, t('Save'));
     $this->drupalGet('admin/config/people/accounts/display/compact');
-    $this->assertTitle('Manage display | Drupal');
+    $this->assertSession()->titleEquals('Manage display | Drupal');
     $this->assertLocalTasks();
 
     // Test manage form display tabs and titles.
     $this->drupalGet('admin/config/people/accounts/form-display/register');
-    $this->assertResponse(403);
+    $this->assertSession()->statusCodeEquals(403);
 
     $this->drupalGet('admin/config/people/accounts/form-display');
-    $this->assertTitle('Manage form display | Drupal');
+    $this->assertSession()->titleEquals('Manage form display | Drupal');
     $this->assertLocalTasks();
 
     $edit = ['display_modes_custom[register]' => TRUE];
     $this->drupalPostForm(NULL, $edit, t('Save'));
-    $this->assertResponse(200);
+    $this->assertSession()->statusCodeEquals(200);
     $this->drupalGet('admin/config/people/accounts/form-display/register');
-    $this->assertTitle('Manage form display | Drupal');
+    $this->assertSession()->titleEquals('Manage form display | Drupal');
     $this->assertLocalTasks();
-    $this->assert(count($this->xpath('//ul/li[1]/a[contains(text(), :text)]', [':text' => 'Default'])) == 1, 'Default secondary tab is in first position.');
+    $this->assertCount(1, $this->xpath('//ul/li[1]/a[contains(text(), :text)]', [':text' => 'Default']), 'Default secondary tab is in first position.');
 
     // Create new view mode and verify it's available on the Manage Display
     // screen after enabling it.
