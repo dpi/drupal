@@ -34,7 +34,7 @@ class MediaAccessControlHandler extends EntityAccessControlHandler implements En
   public function __construct(EntityTypeInterface $entity_type, EntityStorageInterface $mediaStorage = NULL) {
     parent::__construct($entity_type);
     if (!isset($mediaStorage)) {
-      @trigger_error('The $mediaStorage parameter was added in Drupal 8.8.0 and will be required in 9.0.0.', E_USER_DEPRECATED);
+      @trigger_error('The $mediaStorage parameter is deprecated in Drupal 9.1.0 and will be required in 10.0.0.', E_USER_DEPRECATED);
       $mediaStorage = \Drupal::entityTypeManager()->getStorage('media');
     }
     $this->mediaStorage = $mediaStorage;

@@ -72,7 +72,7 @@ class NodeAccessControlHandler extends EntityAccessControlHandler implements Nod
     parent::__construct($entity_type);
     $this->grantStorage = $grant_storage;
     if (!isset($nodeStorage)) {
-      @trigger_error('The $nodeStorage parameter was added in Drupal 8.8.0 and will be required in 9.0.0.', E_USER_DEPRECATED);
+      @trigger_error('The $nodeStorage parameter is deprecated in Drupal 9.1.0 and will be required in 10.0.0.', E_USER_DEPRECATED);
       $nodeStorage = \Drupal::entityTypeManager()->getStorage('node');
     }
     $this->nodeStorage = $nodeStorage;
