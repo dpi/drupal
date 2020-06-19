@@ -53,7 +53,7 @@ class NodeRevisionAccessCheck implements AccessInterface {
    *   The access result.
    */
   public function access(Route $route, AccountInterface $account, $node_revision = NULL, NodeInterface $node = NULL) {
-    @trigger_error('NodeRevisionAccessCheck is deprecated in Drupal 9.1.x. A removal date will be determined after https://www.drupal.org/project/drupal/issues/2730631 lands. Use "_entity_access" requirement with relevant operation instead.', E_USER_DEPRECATED);
+    @trigger_error('NodeRevisionAccessCheck is deprecated in Drupal 9.1.x and will be removed before Drupal 10.0.x. Use "_entity_access" requirement with relevant operation instead. See https://www.drupal.org/node/3043321', E_USER_DEPRECATED);
     if ($node_revision) {
       $node = $this->nodeStorage->loadRevision($node_revision);
     }
