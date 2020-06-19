@@ -76,7 +76,7 @@ class NodeRevisionAccessCheck implements AccessInterface {
    *   TRUE if the operation may be performed, FALSE otherwise.
    */
   public function checkAccess(NodeInterface $node, AccountInterface $account, $op = 'view') {
-    @trigger_error('NodeRevisionAccessCheck is deprecated in Drupal 9.1.x. A removal date will be determined after https://www.drupal.org/project/drupal/issues/2730631 lands. Use "_entity_access" requirement with relevant operation instead.', E_USER_DEPRECATED);
+    @trigger_error('NodeRevisionAccessCheck is deprecated in Drupal 9.1.x and will be removed before Drupal 10.0.x. Use "_entity_access" requirement with relevant operation instead.', E_USER_DEPRECATED);
     // Converts legacy operations for this access check to new revision
     // operation found in access control handler.
     // E.g route _access_node_revision: 'update' to $node->access('revert')
