@@ -61,7 +61,7 @@ class MediaRevisionAccessCheck implements AccessInterface {
    *   The access result.
    */
   public function access(Route $route, AccountInterface $account, $media_revision = NULL, MediaInterface $media = NULL) {
-    @trigger_error('MediaRevisionAccessCheck is deprecated in Drupal 9.1.x and will be removed before Drupal 10.0.x. Use "_entity_access" requirement with relevant operation instead.', E_USER_DEPRECATED);
+    @trigger_error('MediaRevisionAccessCheck is deprecated in Drupal 9.1.x and will be removed before Drupal 10.0.x. Use "_entity_access" requirement with relevant operation instead. See https://www.drupal.org/node/3043321', E_USER_DEPRECATED);
 
     if ($media_revision) {
       $media = $this->mediaStorage->loadRevision($media_revision);
