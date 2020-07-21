@@ -35,7 +35,7 @@ class FilterPermissionUiTest extends ViewTestBase {
   protected function setUp($import_test_views = TRUE): void {
     parent::setUp($import_test_views);
 
-    ViewTestData::createTestViews(get_class($this), ['user_test_views']);
+    ViewTestData::createTestViews(static::class, ['user_test_views']);
     $this->enableViewsTestModule();
   }
 
@@ -43,7 +43,10 @@ class FilterPermissionUiTest extends ViewTestBase {
    * Tests basic filter handler settings in the UI.
    */
   public function testHandlerUI() {
-    $this->drupalLogin($this->drupalCreateUser(['administer views', 'administer users']));
+    $this->drupalLogin($this->drupalCreateUser([
+      'administer views',
+      'administer users',
+    ]));
 
     $this->drupalGet('admin/structure/views/view/test_filter_permission/edit/default');
     // Verify that the handler summary is correctly displaying the selected

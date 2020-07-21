@@ -137,10 +137,10 @@ class ForumTest extends BrowserTestBase {
     // Look for the "General discussion" default forum
     $this->assertRaw(Link::createFromRoute(t('General discussion'), 'forum.page', ['taxonomy_term' => 1])->toString(), "Found the default forum at the /forum listing");
     // Check the presence of expected cache tags.
-    $this->assertCacheTag('config:forum.settings');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'config:forum.settings');
 
     $this->drupalGet(Url::fromRoute('forum.page', ['taxonomy_term' => 1]));
-    $this->assertCacheTag('config:forum.settings');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'config:forum.settings');
 
     // Do the admin tests.
     $this->doAdminTests($this->adminUser);
@@ -205,7 +205,7 @@ class ForumTest extends BrowserTestBase {
     $forum_arg = [':forum' => 'forum-list-' . $this->forum['tid']];
 
     // Topics cell contains number of topics and number of unread topics.
-    $xpath = $this->buildXPathQuery('//tr[@id=:forum]//td[@class="forum__topics"]', $forum_arg);
+    $xpath = $this->assertSession()->buildXPathQuery('//tr[@id=:forum]//td[@class="forum__topics"]', $forum_arg);
     $topics = $this->xpath($xpath);
     $topics = trim($topics[0]->getText());
     // The extracted text contains the number of topics (6) and new posts
@@ -224,7 +224,11 @@ class ForumTest extends BrowserTestBase {
     $this->assertEquals('6', $elements[0]->getText(), 'Number of posts found.');
 
     // Test loading multiple forum nodes on the front page.
-    $this->drupalLogin($this->drupalCreateUser(['administer content types', 'create forum content', 'post comments']));
+    $this->drupalLogin($this->drupalCreateUser([
+      'administer content types',
+      'create forum content',
+      'post comments',
+    ]));
     $this->drupalPostForm('admin/structure/types/manage/forum', ['options[promote]' => 'promote'], t('Save content type'));
     $this->createForumTopic($this->forum, FALSE);
     $this->createForumTopic($this->forum, FALSE);
@@ -245,7 +249,7 @@ class ForumTest extends BrowserTestBase {
 
     // Test the root forum page title change.
     $this->drupalGet('forum');
-    $this->assertCacheTag('config:taxonomy.vocabulary.' . $this->forum['vid']);
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'config:taxonomy.vocabulary.' . $this->forum['vid']);
     $this->assertSession()->titleEquals('Forums | Drupal');
     $vocabulary = Vocabulary::load($this->forum['vid']);
     $vocabulary->set('name', 'Discussions');

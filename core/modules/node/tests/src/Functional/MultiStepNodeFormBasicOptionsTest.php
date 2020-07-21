@@ -29,7 +29,10 @@ class MultiStepNodeFormBasicOptionsTest extends NodeTestBase {
    */
   public function testMultiStepNodeFormBasicOptions() {
     // Prepare a user to create the node.
-    $web_user = $this->drupalCreateUser(['administer nodes', 'create page content']);
+    $web_user = $this->drupalCreateUser([
+      'administer nodes',
+      'create page content',
+    ]);
     $this->drupalLogin($web_user);
 
     // Create an unlimited cardinality field.
@@ -62,8 +65,8 @@ class MultiStepNodeFormBasicOptionsTest extends NodeTestBase {
       "{$this->fieldName}[0][value]" => $this->randomString(32),
     ];
     $this->drupalPostForm('node/add/page', $edit, t('Add another item'));
-    $this->assertNoFieldChecked('edit-promote-value', 'Promote stayed unchecked');
-    $this->assertFieldChecked('edit-sticky-value', 'Sticky stayed checked');
+    $this->assertSession()->checkboxNotChecked('edit-promote-value');
+    $this->assertSession()->checkboxChecked('edit-sticky-value');
   }
 
 }

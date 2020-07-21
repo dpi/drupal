@@ -45,15 +45,6 @@ class DbDumpTest extends KernelTestBase {
   protected $data;
 
   /**
-   * Flag to skip these tests, which are database-backend dependent (MySQL).
-   *
-   * @see \Drupal\Core\Command\DbDumpCommand
-   *
-   * @var bool
-   */
-  protected $skipTests = FALSE;
-
-  /**
    * An array of original table schemas.
    *
    * @var array
@@ -93,8 +84,9 @@ class DbDumpTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
 
-    // Determine what database backend is running, and set the skip flag.
-    $this->skipTests = Database::getConnection()->databaseType() !== 'mysql';
+    if (Database::getConnection()->databaseType() !== 'mysql') {
+      $this->markTestSkipped("Skipping test since the DbDumpCommand is currently only compatible with MySql");
+    }
 
     // Create some schemas so our export contains tables.
     $this->installSchema('system', [
@@ -118,6 +110,7 @@ class DbDumpTest extends KernelTestBase {
     $storage->write('test_config', $this->data);
 
     // Create user account with some potential syntax issues.
+    // cspell:disable-next-line
     $account = User::create(['mail' => 'q\'uote$dollar@example.com', 'name' => '$dollar']);
     $account->save();
 
@@ -161,11 +154,6 @@ class DbDumpTest extends KernelTestBase {
    * Test the command directly.
    */
   public function testDbDumpCommand() {
-    if ($this->skipTests) {
-      $this->pass("Skipping test since the DbDumpCommand is currently only compatible with MySql");
-      return;
-    }
-
     $application = new DbDumpApplication();
     $command = $application->find('dump-database-d8-mysql');
     $command_tester = new CommandTester($command);
@@ -184,6 +172,7 @@ class DbDumpTest extends KernelTestBase {
     $this->assertRegExp('/' . $pattern . '/', $command_tester->getDisplay(), 'Generated data is found in the exported script.');
 
     // Check that the user account name and email address was properly escaped.
+    // cspell:disable-next-line
     $pattern = preg_quote('"q\'uote\$dollar@example.com"');
     $this->assertRegExp('/' . $pattern . '/', $command_tester->getDisplay(), 'The user account email address was properly escaped in the exported script.');
     $pattern = preg_quote('\'$dollar\'');
@@ -194,11 +183,6 @@ class DbDumpTest extends KernelTestBase {
    * Test loading the script back into the database.
    */
   public function testScriptLoad() {
-    if ($this->skipTests) {
-      $this->pass("Skipping test since the DbDumpCommand is currently only compatible with MySql");
-      return;
-    }
-
     // Generate the script.
     $application = new DbDumpApplication();
     $command = $application->find('dump-database-d8-mysql');
@@ -229,7 +213,7 @@ class DbDumpTest extends KernelTestBase {
     }
 
     // Ensure the test config has been replaced.
-    $config = unserialize($connection->query("SELECT data FROM {config} WHERE name = 'test_config'")->fetchField());
+    $config = unserialize($connection->select('config', 'c')->fields('c', ['data'])->condition('name', 'test_config')->execute()->fetchField());
     $this->assertIdentical($config, $this->data, 'Script has properly restored the config table data.');
 
     // Ensure the cache data was not exported.

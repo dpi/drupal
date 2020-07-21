@@ -36,7 +36,10 @@ class LanguageConfigurationTest extends BrowserTestBase {
     $this->assertEqual(ConfigurableLanguage::load('en')->getWeight(), 0, 'The English language has a weight of 0.');
 
     // User to add and remove language.
-    $admin_user = $this->drupalCreateUser(['administer languages', 'access administration pages']);
+    $admin_user = $this->drupalCreateUser([
+      'administer languages',
+      'access administration pages',
+    ]);
     $this->drupalLogin($admin_user);
 
     // Check if the Default English language has no path prefix.
@@ -67,7 +70,7 @@ class LanguageConfigurationTest extends BrowserTestBase {
 
     // Check if we can change the default language.
     $this->drupalGet('admin/config/regional/language');
-    $this->assertFieldChecked('edit-site-default-language-en', 'English is the default language.');
+    $this->assertSession()->checkboxChecked('edit-site-default-language-en');
 
     // Change the default language.
     $edit = [
@@ -75,7 +78,7 @@ class LanguageConfigurationTest extends BrowserTestBase {
     ];
     $this->drupalPostForm(NULL, $edit, t('Save configuration'));
     $this->rebuildContainer();
-    $this->assertFieldChecked('edit-site-default-language-fr', 'Default language updated.');
+    $this->assertSession()->checkboxChecked('edit-site-default-language-fr');
     $this->assertUrl(Url::fromRoute('entity.configurable_language.collection', [], ['absolute' => TRUE, 'langcode' => 'fr'])->toString(), [], 'Correct page redirection.');
 
     // Check if a valid language prefix is added after changing the default
@@ -157,7 +160,10 @@ class LanguageConfigurationTest extends BrowserTestBase {
    */
   public function testLanguageConfigurationWeight() {
     // User to add and remove language.
-    $admin_user = $this->drupalCreateUser(['administer languages', 'access administration pages']);
+    $admin_user = $this->drupalCreateUser([
+      'administer languages',
+      'access administration pages',
+      ]);
     $this->drupalLogin($admin_user);
     $this->checkConfigurableLanguageWeight();
 

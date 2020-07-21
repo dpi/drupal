@@ -57,11 +57,19 @@ class ContactPersonalTest extends BrowserTestBase {
     parent::setUp();
 
     // Create an admin user.
-    $this->adminUser = $this->drupalCreateUser(['administer contact forms', 'administer users', 'administer account settings', 'access site reports']);
+    $this->adminUser = $this->drupalCreateUser([
+      'administer contact forms',
+      'administer users',
+      'administer account settings',
+      'access site reports',
+    ]);
 
     // Create some normal users with their contact forms enabled by default.
     $this->config('contact.settings')->set('user_default_enabled', TRUE)->save();
-    $this->webUser = $this->drupalCreateUser(['access user profiles', 'access user contact forms']);
+    $this->webUser = $this->drupalCreateUser([
+      'access user profiles',
+      'access user contact forms',
+    ]);
     $this->contactUser = $this->drupalCreateUser();
   }
 
@@ -214,10 +222,10 @@ class ContactPersonalTest extends BrowserTestBase {
     // Test enabling and disabling the contact page through the user profile
     // form.
     $this->drupalGet('user/' . $this->webUser->id() . '/edit');
-    $this->assertNoFieldChecked('edit-contact--2');
+    $this->assertSession()->checkboxNotChecked('edit-contact--2');
     $this->assertNull(\Drupal::service('user.data')->get('contact', $this->webUser->id(), 'enabled'), 'Personal contact form disabled');
     $this->drupalPostForm(NULL, ['contact' => TRUE], t('Save'));
-    $this->assertFieldChecked('edit-contact--2');
+    $this->assertSession()->checkboxChecked('edit-contact--2');
     $this->assertNotEmpty(\Drupal::service('user.data')->get('contact', $this->webUser->id(), 'enabled'), 'Personal contact form enabled');
 
     // Test with disabled global default contact form in combination with a user
@@ -280,10 +288,10 @@ class ContactPersonalTest extends BrowserTestBase {
     $this->drupalLogin($this->adminUser);
     $this->drupalGet('admin/people/create');
     if ($this->config('contact.settings')->get('user_default_enabled', TRUE)) {
-      $this->assertFieldChecked('edit-contact--2');
+      $this->assertSession()->checkboxChecked('edit-contact--2');
     }
     else {
-      $this->assertNoFieldChecked('edit-contact--2');
+      $this->assertSession()->checkboxNotChecked('edit-contact--2');
     }
     $name = $this->randomMachineName();
     $edit = [

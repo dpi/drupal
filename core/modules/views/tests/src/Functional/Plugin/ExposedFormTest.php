@@ -231,12 +231,14 @@ class ExposedFormTest extends ViewTestBase {
     $this->assertNoText($view->getTitle(), 'Block title was not displayed.');
 
     // Test there is an exposed form in a block.
-    $xpath = $this->buildXPathQuery('//div[@id=:id]/form/@id', [':id' => Html::getUniqueId('block-' . $block->id())]);
+    $xpath = $this->assertSession()->buildXPathQuery('//div[@id=:id]/form/@id', [':id' => Html::getUniqueId('block-' . $block->id())]);
     $result = $this->xpath($xpath);
     $this->assertCount(1, $result);
 
     // Test there is not an exposed form in the view page content area.
-    $xpath = $this->buildXPathQuery('//div[@class="view-content"]/form/@id', [':id' => Html::getUniqueId('block-' . $block->id())]);
+    $xpath = $this->assertSession()->buildXPathQuery('//div[@class="view-content"]/form/@id', [
+      ':id' => Html::getUniqueId('block-' . $block->id()),
+    ]);
     $this->assertNoFieldByXpath($xpath, $this->getExpectedExposedFormId($view), 'No exposed form found in views content region.');
 
     // Test there is only one views exposed form on the page.
@@ -245,11 +247,11 @@ class ExposedFormTest extends ViewTestBase {
 
     // Test that the correct option is selected after form submission.
     $this->assertCacheContext('url');
-    $this->assertOptionSelected('Content: Type', 'All');
+    $this->assertTrue($this->assertSession()->optionExists('Content: Type', 'All')->isSelected());
     foreach (['All', 'article', 'page'] as $argument) {
       $this->drupalGet('test_exposed_block', ['query' => ['type' => $argument]]);
       $this->assertCacheContext('url');
-      $this->assertOptionSelected('Content: Type', $argument);
+      $this->assertTrue($this->assertSession()->optionExists('Content: Type', $argument)->isSelected());
     }
   }
 

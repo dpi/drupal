@@ -76,8 +76,8 @@
  * Integrating third-party applications using REST and related operations.
  *
  * @section sec_overview Overview of web services
- * Web services make it possible for applications and web sites to read and
- * update information from other web sites. There are several standard
+ * Web services make it possible for applications and websites to read and
+ * update information from other websites. There are several standard
  * techniques for providing web services, including:
  * - SOAP: http://wikipedia.org/wiki/SOAP
  * - XML-RPC: http://wikipedia.org/wiki/XML-RPC
@@ -152,7 +152,7 @@
  * @ref sec_rest above.
  *
  * @section sec_integrate Integrating data from other sites into Drupal
- * If you want to integrate data from other web sites into Drupal, here are
+ * If you want to integrate data from other websites into Drupal, here are
  * some notes:
  * - There are contributed modules available for integrating many third-party
  *   sites into Drupal. Search on https://www.drupal.org/project/project_module
@@ -2509,7 +2509,7 @@ function hook_validation_constraint_alter(array &$definitions) {
  * you should normally define as a constant in a separate static class (see
  * \Symfony\Component\HttpKernel\KernelEvents and
  * \Drupal\Core\Config\ConfigEvents for examples). The second argument is a
- * \Symfony\Component\EventDispatcher\Event object; normally you will need to
+ * \Drupal\Component\EventDispatcher\Event object; normally you will need to
  * extend this class, so that your event class can provide data to the event
  * subscribers.
  *

@@ -54,7 +54,17 @@ class FieldUIDeleteTest extends BrowserTestBase {
     $this->drupalPlaceBlock('page_title_block');
 
     // Create a test user.
-    $admin_user = $this->drupalCreateUser(['access content', 'administer content types', 'administer node fields', 'administer node form display', 'administer node display', 'administer users', 'administer account settings', 'administer user display', 'bypass node access']);
+    $admin_user = $this->drupalCreateUser([
+      'access content',
+      'administer content types',
+      'administer node fields',
+      'administer node form display',
+      'administer node display',
+      'administer users',
+      'administer account settings',
+      'administer user display',
+      'bypass node access',
+    ]);
     $this->drupalLogin($admin_user);
   }
 
@@ -85,7 +95,7 @@ class FieldUIDeleteTest extends BrowserTestBase {
     $this->fieldUIAddExistingField($bundle_path2, $field_name, $field_label);
 
     \Drupal::service('module_installer')->install(['views']);
-    ViewTestData::createTestViews(get_class($this), ['field_test_views']);
+    ViewTestData::createTestViews(static::class, ['field_test_views']);
 
     $view = View::load('test_view_field_delete');
     $this->assertNotNull($view);

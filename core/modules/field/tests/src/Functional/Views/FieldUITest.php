@@ -72,7 +72,7 @@ class FieldUITest extends FieldTestBase {
     $this->drupalPostForm(NULL, ['options[type]' => 'text_trimmed'], t('Apply'));
 
     $this->drupalGet($url);
-    $this->assertOptionSelected('edit-options-type', 'text_trimmed');
+    $this->assertTrue($this->assertSession()->optionExists('edit-options-type', 'text_trimmed')->isSelected());
 
     $random_number = rand(100, 400);
     $this->drupalPostForm(NULL, ['options[settings][trim_length]' => $random_number], t('Apply'));
@@ -160,7 +160,7 @@ class FieldUITest extends FieldTestBase {
     $this->drupalPostForm(NULL, ['options[value]' => 'All', 'options[expose][required]' => FALSE], 'Apply');
     $this->drupalPostForm(NULL, [], 'Save');
     $this->drupalGet('/admin/structure/views/nojs/handler/test_view_fieldapi/default/filter/field_boolean_value');
-    $this->assertFieldChecked('edit-options-value-all');
+    $this->assertSession()->checkboxChecked('edit-options-value-all');
   }
 
 }

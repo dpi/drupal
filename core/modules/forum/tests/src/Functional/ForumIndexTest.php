@@ -27,7 +27,13 @@ class ForumIndexTest extends BrowserTestBase {
     parent::setUp();
 
     // Create a test user.
-    $web_user = $this->drupalCreateUser(['create forum content', 'edit own forum content', 'edit any forum content', 'administer nodes', 'administer forums']);
+    $web_user = $this->drupalCreateUser([
+      'create forum content',
+      'edit own forum content',
+      'edit any forum content',
+      'administer nodes',
+      'administer forums',
+    ]);
     $this->drupalLogin($web_user);
   }
 
@@ -69,12 +75,12 @@ class ForumIndexTest extends BrowserTestBase {
     // Verify that the node appears on the index.
     $this->drupalGet('forum/' . $tid);
     $this->assertText($title, 'Published forum topic appears on index.');
-    $this->assertCacheTag('node_list');
-    $this->assertCacheTag('config:node.type.forum');
-    $this->assertCacheTag('comment_list');
-    $this->assertCacheTag('node:' . $node->id());
-    $this->assertCacheTag('taxonomy_term:' . $tid);
-    $this->assertCacheTag('taxonomy_term:' . $tid_child);
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'node_list');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'config:node.type.forum');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'comment_list');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'node:' . $node->id());
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'taxonomy_term:' . $tid);
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'taxonomy_term:' . $tid_child);
 
     // Unpublish the node.
     $edit = ['status[value]' => FALSE];

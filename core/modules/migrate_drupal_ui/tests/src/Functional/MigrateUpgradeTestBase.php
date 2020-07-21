@@ -110,19 +110,19 @@ abstract class MigrateUpgradeTestBase extends BrowserTestBase {
   protected function assertUpgradePaths(WebAssert $session, array $available_paths, array $missing_paths) {
     // Test the available migration paths.
     foreach ($available_paths as $available) {
-      $session->elementExists('xpath', "//span[contains(@class, 'checked') and text() = '$available']");
-      $session->elementNotExists('xpath', "//span[contains(@class, 'error') and text() = '$available']");
+      $session->elementExists('xpath', "//td[contains(@class, 'checked') and text() = '$available']");
+      $session->elementNotExists('xpath', "//td[contains(@class, 'error') and text() = '$available']");
     }
 
     // Test the missing migration paths.
     foreach ($missing_paths as $missing) {
-      $session->elementExists('xpath', "//span[contains(@class, 'error') and text() = '$missing']");
-      $session->elementNotExists('xpath', "//span[contains(@class, 'checked') and text() = '$missing']");
+      $session->elementExists('xpath', "//td[contains(@class, 'error') and text() = '$missing']");
+      $session->elementNotExists('xpath', "//td[contains(@class, 'checked') and text() = '$missing']");
     }
 
     // Test the total count of missing and available paths.
-    $session->elementsCount('xpath', "//span[contains(@class, 'upgrade-analysis-report__status-icon--error')]", count($missing_paths));
-    $session->elementsCount('xpath', "//span[contains(@class, 'upgrade-analysis-report__status-icon--checked')]", count($available_paths));
+    $session->elementsCount('xpath', "//td[contains(@class, 'upgrade-analysis-report__status-icon--error')]", count($missing_paths));
+    $session->elementsCount('xpath', "//td[contains(@class, 'upgrade-analysis-report__status-icon--checked')]", count($available_paths));
   }
 
   /**
@@ -258,6 +258,45 @@ abstract class MigrateUpgradeTestBase extends BrowserTestBase {
         $this->assertNotSame(MigrateIdMapInterface::STATUS_NEEDS_UPDATE, $row['source_row_status'], $message);
       }
     }
+  }
+
+  /**
+   * Creates an array of credentials for the Credential form.
+   *
+   * Before submitting to the Credential form the array must be processed by
+   * BrowserTestBase::translatePostValues() before submitting.
+   *
+   * @return array
+   *   An array of values suitable for BrowserTestBase::translatePostValues().
+   *
+   * @see \Drupal\migrate_drupal_ui\Form\CredentialForm
+   */
+  protected function getCredentials() {
+    $connection_options = $this->sourceDatabase->getConnectionOptions();
+    $version = $this->getLegacyDrupalVersion($this->sourceDatabase);
+    $driver = $connection_options['driver'];
+    $connection_options['prefix'] = $connection_options['prefix']['default'];
+
+    // Use the driver connection form to get the correct options out of the
+    // database settings. This supports all of the databases we test against.
+    $drivers = drupal_get_database_types();
+    $form = $drivers[$driver]->getFormOptions($connection_options);
+    $connection_options = array_intersect_key($connection_options, $form + $form['advanced_options']);
+    $edit = [
+      $driver => $connection_options,
+      'source_private_file_path' => $this->getSourceBasePath(),
+      'version' => $version,
+    ];
+    if ($version == 6) {
+      $edit['d6_source_base_path'] = $this->getSourceBasePath();
+    }
+    else {
+      $edit['source_base_path'] = $this->getSourceBasePath();
+    }
+    if (count($drivers) !== 1) {
+      $edit['driver'] = $driver;
+    }
+    return $edit;
   }
 
 }

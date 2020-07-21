@@ -660,7 +660,7 @@ function hook_update_N(&$sandbox) {
     // This must be the first run. Initialize the sandbox.
     $sandbox['progress'] = 0;
     $sandbox['current_pk'] = 0;
-    $sandbox['max'] = Database::getConnection()->query('SELECT COUNT(myprimarykey) FROM {mytable1}')->fetchField();
+    $sandbox['max'] = Database::getConnection()->query('SELECT COUNT([myprimarykey]) FROM {mytable1}')->fetchField();
   }
 
   // Update in chunks of 20.
@@ -987,8 +987,8 @@ function hook_requirements($phase) {
     'title' => t('PHP'),
     'value' => ($phase == 'runtime') ? Link::fromTextAndUrl(phpversion(), Url::fromRoute('system.php'))->toString() : phpversion(),
   ];
-  if (version_compare(phpversion(), DRUPAL_MINIMUM_PHP) < 0) {
-    $requirements['php']['description'] = t('Your PHP installation is too old. Drupal requires at least PHP %version.', ['%version' => DRUPAL_MINIMUM_PHP]);
+  if (version_compare(phpversion(), \Drupal::MINIMUM_PHP) < 0) {
+    $requirements['php']['description'] = t('Your PHP installation is too old. Drupal requires at least PHP %version.', ['%version' => \Drupal::MINIMUM_PHP]);
     $requirements['php']['severity'] = REQUIREMENT_ERROR;
   }
 

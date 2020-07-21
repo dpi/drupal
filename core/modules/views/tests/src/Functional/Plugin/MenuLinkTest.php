@@ -53,7 +53,10 @@ class MenuLinkTest extends ViewTestBase {
 
     $this->enableViewsTestModule();
 
-    $this->adminUser = $this->drupalCreateUser(['administer views', 'administer menu']);
+    $this->adminUser = $this->drupalCreateUser([
+      'administer views',
+      'administer menu',
+    ]);
     $this->drupalPlaceBlock('system_menu_block:main');
     $this->drupalCreateContentType(['type' => 'page']);
   }
@@ -91,7 +94,7 @@ class MenuLinkTest extends ViewTestBase {
 
     // Test if the node as parent menu item is selected in our views settings.
     $this->drupalGet('admin/structure/views/nojs/display/test_menu_link/page_1/menu');
-    $this->assertOptionSelected('edit-menu-parent', $parent_menu_value);
+    $this->assertTrue($this->assertSession()->optionExists('edit-menu-parent', $parent_menu_value)->isSelected());
 
     $this->drupalGet('');
 

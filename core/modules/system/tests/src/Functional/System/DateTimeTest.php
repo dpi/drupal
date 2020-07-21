@@ -217,7 +217,9 @@ class DateTimeTest extends BrowserTestBase {
     $this->drupalLogout();
 
     // Now log in as a regular editor.
-    $this->drupalLogin($this->drupalCreateUser(['create page_with_date content']));
+    $this->drupalLogin($this->drupalCreateUser([
+      'create page_with_date content',
+    ]));
 
     $this->drupalGet('node/add/page_with_date');
     $edit = [
@@ -229,7 +231,7 @@ class DateTimeTest extends BrowserTestBase {
       'field_dt[0][value][minute]' => '30',
     ];
     $this->drupalPostForm('node/add/page_with_date', $edit, t('Save'));
-    $this->assertText(t('Selected combination of day and month is not valid.'), 'Inorrect date failed validation');
+    $this->assertText(t('Selected combination of day and month is not valid.'), 'Incorrect date failed validation');
 
     $edit['field_dt[0][value][day]'] = '29';
     $this->drupalPostForm('node/add/page_with_date', $edit, t('Save'));

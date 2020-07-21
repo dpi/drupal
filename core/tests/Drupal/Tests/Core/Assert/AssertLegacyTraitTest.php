@@ -127,6 +127,7 @@ class AssertLegacyTraitTest extends UnitTestCase {
 
   /**
    * @covers ::assertOptionSelected
+   * @expectedDeprecation AssertLegacyTrait::assertOptionSelected() is deprecated in drupal:8.2.0 and is removed from drupal:10.0.0. Use $this->assertSession()->optionExists() instead and check the "selected" attribute. See https://www.drupal.org/node/3129738
    */
   public function testAssertOptionSelected() {
     $option_field = $this->prophesize(NodeElement::class);
@@ -141,6 +142,7 @@ class AssertLegacyTraitTest extends UnitTestCase {
 
   /**
    * @covers ::assertOptionSelected
+   * @expectedDeprecation AssertLegacyTrait::assertOptionSelected() is deprecated in drupal:8.2.0 and is removed from drupal:10.0.0. Use $this->assertSession()->optionExists() instead and check the "selected" attribute. See https://www.drupal.org/node/3129738
    */
   public function testAssertOptionSelectedFail() {
     $option_field = $this->prophesize(NodeElement::class);
@@ -164,6 +166,18 @@ class AssertLegacyTraitTest extends UnitTestCase {
       ->shouldBeCalled();
 
     $this->assertNoPattern('/.*foo$/');
+  }
+
+  /**
+   * @covers ::assertCacheTag
+   * @expectedDeprecation AssertLegacyTrait::assertCacheTag() is deprecated in drupal:8.2.0 and is removed from drupal:10.0.0. Use $this->assertSession()->responseHeaderContains() instead. See https://www.drupal.org/node/3129738
+   */
+  public function testAssertCacheTag() {
+    $this->webAssert
+      ->responseHeaderContains('X-Drupal-Cache-Tags', 'some-cache-tag')
+      ->shouldBeCalled();
+
+    $this->assertCacheTag('some-cache-tag');
   }
 
   /**
@@ -200,6 +214,14 @@ class AssertLegacyTraitTest extends UnitTestCase {
       ->shouldBeCalled();
 
     $this->assertElementNotPresent('.pager');
+  }
+
+  /**
+   * @covers ::pass
+   * @expectedDeprecation AssertLegacyTrait::pass() is deprecated in drupal:8.0.0 and is removed from drupal:10.0.0. PHPUnit interrupts a test as soon as a test assertion fails, so there is usually no need to call this method. If a test's logic relies on this method, refactor the test. See https://www.drupal.org/node/3129738
+   */
+  public function testPass() {
+    $this->pass('Passed.');
   }
 
   /**

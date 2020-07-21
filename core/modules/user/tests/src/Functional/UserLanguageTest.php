@@ -29,7 +29,10 @@ class UserLanguageTest extends BrowserTestBase {
    */
   public function testUserLanguageConfiguration() {
     // User to add and remove language.
-    $admin_user = $this->drupalCreateUser(['administer languages', 'access administration pages']);
+    $admin_user = $this->drupalCreateUser([
+      'administer languages',
+      'access administration pages',
+    ]);
     // User to change their default language.
     $web_user = $this->drupalCreateUser();
 
@@ -64,7 +67,7 @@ class UserLanguageTest extends BrowserTestBase {
     // Ensure form was submitted successfully.
     $this->assertText(t('The changes have been saved.'), 'Changes were saved.');
     // Check if language was changed.
-    $this->assertOptionSelected('edit-preferred-langcode', $langcode, 'Default language successfully updated.');
+    $this->assertTrue($this->assertSession()->optionExists('edit-preferred-langcode', $langcode)->isSelected());
 
     $this->drupalLogout();
   }

@@ -39,15 +39,14 @@ function drupal_get_schema_versions($module) {
     // Narrow this down to functions ending with an integer, since all
     // hook_update_N() functions end this way, and there are other
     // possible functions which match '_update_'. We use preg_grep() here
-    // instead of foreaching through all defined functions, since the loop
-    // through all PHP functions can take significant page execution time
-    // and this function is called on every administrative page via
-    // system_requirements().
+    // since looping through all PHP functions can take significant page
+    // execution time and this function is called on every administrative page
+    // via system_requirements().
     foreach (preg_grep('/_\d+$/', $functions['user']) as $function) {
       // If this function is a module update function, add it to the list of
       // module updates.
       if (preg_match($regexp, $function, $matches)) {
-        $updates[$matches['module']][] = $matches['version'];
+        $updates[$matches['module']][] = (int) $matches['version'];
       }
     }
     // Ensure that updates are applied in numerical order.

@@ -32,7 +32,10 @@ class LanguageCustomLanguageConfigurationTest extends BrowserTestBase {
   public function testLanguageConfiguration() {
 
     // Create user with permissions to add and remove languages.
-    $admin_user = $this->drupalCreateUser(['administer languages', 'access administration pages']);
+    $admin_user = $this->drupalCreateUser([
+      'administer languages',
+      'access administration pages',
+    ]);
     $this->drupalLogin($admin_user);
 
     // Add custom language.
@@ -44,7 +47,7 @@ class LanguageCustomLanguageConfigurationTest extends BrowserTestBase {
     $this->assertText(t('@name field is required.', ['@name' => t('Language code')]));
     $this->assertText(t('@name field is required.', ['@name' => t('Language name')]));
     $empty_language = new Language();
-    $this->assertFieldChecked('edit-direction-' . $empty_language->getDirection(), 'Consistent usage of language direction.');
+    $this->assertSession()->checkboxChecked('edit-direction-' . $empty_language->getDirection());
     $this->assertUrl(Url::fromRoute('language.add', [], ['absolute' => TRUE])->toString(), [], 'Correct page redirection.');
 
     // Test validation of invalid values.

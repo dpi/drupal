@@ -8,7 +8,10 @@ use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Entity\Sql\DefaultTableMapping;
+use Drupal\views\Plugin\views\filter\InOperator;
+use Drupal\views\Plugin\ViewsHandlerManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -57,6 +60,13 @@ class ViewsConfigUpdater implements ContainerInjectionInterface {
   protected $multivalueBaseFieldsUpdateTableInfo;
 
   /**
+   * The Views filter plugin manager service.
+   *
+   * @var \Drupal\views\Plugin\ViewsHandlerManager
+   */
+  protected $filterPluginManager;
+
+  /**
    * Flag determining whether deprecations should be triggered.
    *
    * @var bool
@@ -81,17 +91,21 @@ class ViewsConfigUpdater implements ContainerInjectionInterface {
    *   The typed config manager.
    * @param \Drupal\views\ViewsData $views_data
    *   The views data service.
+   * @param \Drupal\views\Plugin\ViewsHandlerManager $filter_plugin_manager
+   *   The Views filter plugin manager service.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     EntityFieldManagerInterface $entity_field_manager,
     TypedConfigManagerInterface $typed_config_manager,
-    ViewsData $views_data
+    ViewsData $views_data,
+    ViewsHandlerManager $filter_plugin_manager
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->entityFieldManager = $entity_field_manager;
     $this->typedConfigManager = $typed_config_manager;
     $this->viewsData = $views_data;
+    $this->filterPluginManager = $filter_plugin_manager;
   }
 
   /**
@@ -102,7 +116,8 @@ class ViewsConfigUpdater implements ContainerInjectionInterface {
       $container->get('entity_type.manager'),
       $container->get('entity_field.manager'),
       $container->get('config.typed'),
-      $container->get('views.views_data')
+      $container->get('views.views_data'),
+      $container->get('plugin.manager.views.filter')
     );
   }
 
@@ -135,6 +150,9 @@ class ViewsConfigUpdater implements ContainerInjectionInterface {
         $changed = TRUE;
       }
       if ($this->processMultivalueBaseFieldHandler($handler, $handler_type, $key, $display_id, $view)) {
+        $changed = TRUE;
+      }
+      if ($this->processInOperatorFilterValues($handler, $handler_type)) {
         $changed = TRUE;
       }
       return $changed;
@@ -343,7 +361,7 @@ class ViewsConfigUpdater implements ContainerInjectionInterface {
       $table_info = [];
 
       foreach ($this->entityTypeManager->getDefinitions() as $entity_type_id => $entity_type) {
-        if ($entity_type->hasHandlerClass('views_data')) {
+        if ($entity_type->hasHandlerClass('views_data') && $entity_type->entityClassImplements(FieldableEntityInterface::class)) {
           $base_field_definitions = $this->entityFieldManager->getBaseFieldDefinitions($entity_type_id);
 
           $entity_storage = $this->entityTypeManager->getStorage($entity_type_id);
@@ -474,6 +492,51 @@ class ViewsConfigUpdater implements ContainerInjectionInterface {
       default:
         return $single_operator;
     }
+  }
+
+  /**
+   * Update values for of in_operators filters.
+   *
+   * @param \Drupal\views\ViewEntityInterface $view
+   *   The View to update.
+   *
+   * @return bool
+   *   Whether the view was updated.
+   */
+  public function needsInOperatorFilterValuesUpdate(ViewEntityInterface $view): bool {
+    return $this->processDisplayHandlers($view, TRUE, function (array &$handler, string $handler_type): bool {
+      return $this->processInOperatorFilterValues($handler, $handler_type);
+    });
+  }
+
+  /**
+   * Processes the in_operator filter values.
+   *
+   * @param array $handler
+   *   A display handler.
+   * @param string $handler_type
+   *   The handler type.
+   *
+   * @return bool
+   *   Whether the handler was updated.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
+   *   If the filter plugin instance cannot be created.
+   */
+  protected function processInOperatorFilterValues(array &$handler, string $handler_type): bool {
+    if ($handler_type === 'filter' && !empty($handler['value']) && is_array($handler['value'])) {
+      $values = array_values($handler['value']);
+      // Only process if the keys are the same as the values.
+      if ($values === array_keys($handler['value'])) {
+        $class = $this->filterPluginManager->getDefinition($handler['plugin_id'])['class'];
+        // Process for 'in_operator' plugin but also for its descendants.
+        if ($class === InOperator::class || is_subclass_of($class, InOperator::class)) {
+          $handler['value'] = $values;
+          return TRUE;
+        }
+      }
+    }
+    return FALSE;
   }
 
 }

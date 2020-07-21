@@ -53,15 +53,27 @@ class InstallerTranslationTest extends InstallerTestBase {
     // it will try and create the drupal_install_test table as this is part of
     // the standard database tests performed by the installer in
     // Drupal\Core\Database\Install\Tasks.
-    Database::getConnection('default')->query('CREATE TABLE {drupal_install_test} (id int NOT NULL PRIMARY KEY)');
+    $spec = [
+      'fields' => [
+        'id' => [
+          'type' => 'int',
+          'not null' => TRUE,
+        ],
+      ],
+      'primary key' => ['id'],
+    ];
+
+    Database::getConnection('default')->schema()->createTable('drupal_install_test', $spec);
     parent::setUpSettings();
 
     // Ensure that the error message translation is working.
+    // cSpell:disable
     $this->assertRaw('Beheben Sie alle Probleme unten, um die Installation fortzusetzen. Informationen zur Konfiguration der Datenbankserver finden Sie in der <a href="https://www.drupal.org/docs/8/install">Installationshandbuch</a>, oder kontaktieren Sie Ihren Hosting-Anbieter.');
     $this->assertRaw('<strong>CREATE</strong> ein Test-Tabelle auf Ihrem Datenbankserver mit dem Befehl <em class="placeholder">CREATE TABLE {drupal_install_test} (id int NOT NULL PRIMARY KEY)</em> fehlgeschlagen.');
+    // cSpell:enable
 
     // Now do it successfully.
-    Database::getConnection('default')->query('DROP TABLE {drupal_install_test}');
+    Database::getConnection('default')->schema()->dropTable('drupal_install_test');
     parent::setUpSettings();
   }
 

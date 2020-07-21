@@ -59,7 +59,11 @@ class PagePreviewTest extends NodeTestBase {
     parent::setUp();
     $this->addDefaultCommentField('node', 'page');
 
-    $web_user = $this->drupalCreateUser(['edit own page content', 'create page content', 'administer menu']);
+    $web_user = $this->drupalCreateUser([
+      'edit own page content',
+      'create page content',
+      'administer menu',
+    ]);
     $this->drupalLogin($web_user);
 
     // Add a vocabulary so we can test different view modes.
@@ -404,7 +408,7 @@ class PagePreviewTest extends NodeTestBase {
     ];
     $this->drupalPostForm(NULL, $edit, t('Preview'));
     $this->clickLink(t('Back to content editing'));
-    $this->assertFieldChecked('edit-menu-enabled', 'Menu option is still checked');
+    $this->assertSession()->checkboxChecked('edit-menu-enabled');
     $this->assertFieldByName('menu[title]', 'Changed title', 'Menu link title is correct after preview');
 
     // Save, change the title while saving and make sure that it is correctly

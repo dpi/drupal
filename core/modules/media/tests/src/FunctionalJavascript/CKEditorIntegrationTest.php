@@ -218,7 +218,7 @@ class CKEditorIntegrationTest extends WebDriverTestBase {
 
     // There's a second kind of error message that comes from the back end
     // that happens when the media uuid can't be converted to a media preview.
-    // In this case, the error will appear in a the themable
+    // In this case, the error will appear in a the themeable
     // media-embed-error.html template.  We have a hook altering the css
     // classes to test the twi template is working properly and picking up our
     // extra class.
@@ -267,7 +267,6 @@ class CKEditorIntegrationTest extends WebDriverTestBase {
     $this->config('node.settings')
       ->set('use_admin_theme', TRUE)
       ->save();
-    $this->container->get('router.builder')->rebuild();
 
     // Allow the test user to view the admin theme.
     $this->adminUser->addRole($this->drupalCreateRole(['view the administration theme']));
@@ -667,6 +666,7 @@ class CKEditorIntegrationTest extends WebDriverTestBase {
     $assert_session->elementAttributeContains('named', ['field', 'attributes[alt]'], 'placeholder', 'default alt');
 
     // Fill in the alt field, submit and return to CKEditor.
+    // cSpell:disable-next-line
     $who_is_zartan = 'Zartan is the leader of the Dreadnoks.';
     $page->fillField('attributes[alt]', $who_is_zartan);
     $this->submitDialog();
@@ -793,6 +793,7 @@ class CKEditorIntegrationTest extends WebDriverTestBase {
     $host->save();
 
     $translation = $host->addTranslation('fr');
+    // cSpell:disable-next-line
     $translation->title = 'Animaux avec des noms étranges';
     $translation->body->value = $host->body->value;
     $translation->body->format = $host->body->format;
@@ -810,16 +811,20 @@ class CKEditorIntegrationTest extends WebDriverTestBase {
     $this->getSession()->switchToIFrame('ckeditor');
 
     // Test that the default alt attribute displays without an override.
+    // cSpell:disable-next-line
     $this->assertNotEmpty($assert_session->waitForElementVisible('xpath', '//img[contains(@alt, "texte alternatif par défaut")]'));
     // Test `aria-label` attribute appears on the widget wrapper.
+    // cSpell:disable-next-line
     $assert_session->elementExists('css', '.cke_widget_drupalmedia[aria-label="Tatou poilu hurlant"]');
     $page->pressButton('Edit media');
     $this->waitForMetadataDialog();
     // Assert that the placeholder is set to the value of the media field's
     // alt text.
+    // cSpell:disable-next-line
     $assert_session->elementAttributeContains('named', ['field', 'attributes[alt]'], 'placeholder', 'texte alternatif par défaut');
 
     // Fill in the alt field in the dialog.
+    // cSpell:disable-next-line
     $qui_est_zartan = 'Zartan est le chef des Dreadnoks.';
     $page->fillField('attributes[alt]', $qui_est_zartan);
     $this->submitDialog();

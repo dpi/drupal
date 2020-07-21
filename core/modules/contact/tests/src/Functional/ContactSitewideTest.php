@@ -59,7 +59,9 @@ class ContactSitewideTest extends BrowserTestBase {
    */
   public function testSiteWideContact() {
     // Tests name and email fields for authenticated and anonymous users.
-    $this->drupalLogin($this->drupalCreateUser(['access site-wide contact form']));
+    $this->drupalLogin($this->drupalCreateUser([
+      'access site-wide contact form',
+    ]));
     $this->drupalGet('contact');
 
     // Ensure that there is no textfield for name.
@@ -93,7 +95,7 @@ class ContactSitewideTest extends BrowserTestBase {
 
     // Check the presence of expected cache tags.
     $this->drupalGet('contact');
-    $this->assertCacheTag('config:contact.settings');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'config:contact.settings');
 
     $flood_limit = 3;
     $this->config('contact.settings')

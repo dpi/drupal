@@ -57,7 +57,10 @@ class TaxonomyIndexTidUiTest extends UITestBase {
   protected function setUp($import_test_views = TRUE): void {
     parent::setUp($import_test_views);
 
-    $this->adminUser = $this->drupalCreateUser(['administer taxonomy', 'administer views']);
+    $this->adminUser = $this->drupalCreateUser([
+      'administer taxonomy',
+      'administer views',
+    ]);
     $this->drupalLogin($this->adminUser);
 
     Vocabulary::create([
@@ -82,7 +85,7 @@ class TaxonomyIndexTidUiTest extends UITestBase {
         $term->save();
       }
     }
-    ViewTestData::createTestViews(get_class($this), ['taxonomy_test_views']);
+    ViewTestData::createTestViews(static::class, ['taxonomy_test_views']);
 
     Vocabulary::create([
       'vid' => 'empty_vocabulary',

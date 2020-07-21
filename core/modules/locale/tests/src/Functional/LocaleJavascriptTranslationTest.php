@@ -107,7 +107,7 @@ class LocaleJavascriptTranslationTest extends BrowserTestBase {
         $this->assertTrue(isset($source_strings[$str]) && $source_strings[$str] === $context, $message);
       }
 
-      $this->assertEqual(count($source_strings), count($test_strings), 'Found correct number of source strings.');
+      $this->assertSame(count($test_strings), count($source_strings), 'Found correct number of source strings.');
     }
   }
 
@@ -116,7 +116,11 @@ class LocaleJavascriptTranslationTest extends BrowserTestBase {
    */
   public function testLocaleTranslationJsDependencies() {
     // User to add and remove language.
-    $admin_user = $this->drupalCreateUser(['administer languages', 'access administration pages', 'translate interface']);
+    $admin_user = $this->drupalCreateUser([
+      'administer languages',
+      'access administration pages',
+      'translate interface',
+    ]);
 
     // Add custom language.
     $this->drupalLogin($admin_user);
