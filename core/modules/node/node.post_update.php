@@ -14,3 +14,10 @@ function node_removed_post_updates() {
     'node_post_update_node_revision_views_data' => '9.0.0',
   ];
 }
+
+/**
+ * Rebuild the node revision routes.
+ */
+function node_post_update_rebuild_node_revision_routes() {
+  // Empty update to rebuild routes.
+}
