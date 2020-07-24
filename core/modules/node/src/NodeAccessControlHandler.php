@@ -5,8 +5,8 @@ namespace Drupal\node;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Entity\EntityHandlerInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Entity\EntityAccessControlHandler;
@@ -30,11 +30,11 @@ class NodeAccessControlHandler extends EntityAccessControlHandler implements Nod
   protected $grantStorage;
 
   /**
-   * Node entity storage.
+   * The entity type manager.
    *
-   * @var \Drupal\node\NodeStorageInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $nodeStorage;
+  protected $entityTypeManager;
 
   /**
    * Map of revision operations.
@@ -54,7 +54,7 @@ class NodeAccessControlHandler extends EntityAccessControlHandler implements Nod
   const REVISION_OPERATION_MAP = [
     'view all revisions' => ['view', 'view'],
     'view revision' => ['view', 'view'],
-    'revert' => ['revert', 'update'],
+    'revert revision' => ['revert', 'update'],
     'delete revision' => ['delete', 'delete'],
   ];
 
@@ -65,17 +65,17 @@ class NodeAccessControlHandler extends EntityAccessControlHandler implements Nod
    *   The entity type definition.
    * @param \Drupal\node\NodeGrantDatabaseStorageInterface $grant_storage
    *   The node grant storage.
-   * @param \Drupal\Core\Entity\EntityStorageInterface|null $nodeStorage
-   *   Node entity storage.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface|null $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct(EntityTypeInterface $entity_type, NodeGrantDatabaseStorageInterface $grant_storage, EntityStorageInterface $nodeStorage = NULL) {
+  public function __construct(EntityTypeInterface $entity_type, NodeGrantDatabaseStorageInterface $grant_storage, EntityTypeManagerInterface $entity_type_manager = NULL) {
     parent::__construct($entity_type);
     $this->grantStorage = $grant_storage;
-    if (!isset($nodeStorage)) {
-      @trigger_error('The $nodeStorage parameter is deprecated in Drupal 9.1.0 and will be required in 10.0.0.', E_USER_DEPRECATED);
-      $nodeStorage = \Drupal::entityTypeManager()->getStorage('node');
+    if (!isset($entity_type_manager)) {
+      @trigger_error('The $entity_type_manager parameter is deprecated in Drupal 9.1.0 and will be required in 10.0.0.', E_USER_DEPRECATED);
+      $entity_type_manager = \Drupal::entityTypeManager();
     }
-    $this->nodeStorage = $nodeStorage;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -85,7 +85,7 @@ class NodeAccessControlHandler extends EntityAccessControlHandler implements Nod
     return new static(
       $entity_type,
       $container->get('node.grant_storage'),
-      $container->get('entity_type.manager')->getStorage('node')
+      $container->get('entity_type.manager')
     );
   }
 
@@ -166,7 +166,7 @@ class NodeAccessControlHandler extends EntityAccessControlHandler implements Nod
       // different revisions so there is no need for a separate database
       // check. Also, if you try to revert to or delete the default revision,
       // that's not good.
-      if ($node->isDefaultRevision() && ($this->nodeStorage->countDefaultLanguageRevisions($node) == 1 || $entityOperation === 'update' || $entityOperation === 'delete')) {
+      if ($node->isDefaultRevision() && ($this->entityTypeManager->getStorage($node->getEntityTypeId())->countDefaultLanguageRevisions($node) == 1 || $entityOperation === 'update' || $entityOperation === 'delete')) {
         return AccessResult::neutral()->addCacheableDependency($node);
       }
       elseif ($account->hasPermission('administer nodes')) {
@@ -177,7 +177,7 @@ class NodeAccessControlHandler extends EntityAccessControlHandler implements Nod
         // node passed in is not the default revision then check access to
         // that, too.
         return AccessResult::allowedIf(
-          $this->access($this->nodeStorage->load($node->id()), $entityOperation, $account) &&
+          $this->access($this->entityTypeManager->getStorage($node->getEntityTypeId())->load($node->id()), $entityOperation, $account) &&
           ($node->isDefaultRevision() || $this->access($node, $entityOperation, $account))
         );
       }

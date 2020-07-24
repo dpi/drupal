@@ -45,8 +45,10 @@ class NodeRouteContext implements ContextProviderInterface {
     if (($route_object = $this->routeMatch->getRouteObject())) {
       $route_contexts = $route_object->getOption('parameters');
       // Check for a node revision parameter first.
-      if (isset($route_contexts['node_revision']) && $revision = $this->routeMatch->getParameter('node_revision')) {
-        $value = $revision;
+      // @todo https://www.drupal.org/i/2730631 will allow to use the upcasted
+      //   node revision object.
+      if ($revision_id = $this->routeMatch->getRawParameter('node_revision')) {
+        $value = \Drupal::entityTypeManager()->getStorage('node')->loadRevision($revision_id);
       }
       elseif (isset($route_contexts['node']) && $node = $this->routeMatch->getParameter('node')) {
         $value = $node;

@@ -6,6 +6,7 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Cache\Context\CacheContextsManager;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\RevisionableEntityBundleInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Language\LanguageInterface;
@@ -95,6 +96,9 @@ class NodeOperationAccessTest extends UnitTestCase {
     $node->expects($this->any())
       ->method('getCacheMaxAge')
       ->willReturn(-1);
+    $node->expects($this->any())
+      ->method('getEntityTypeId')
+      ->willReturn('node');
 
     if (isset($isDefaultRevision)) {
       $node->expects($this->atLeastOnce())
@@ -112,12 +116,17 @@ class NodeOperationAccessTest extends UnitTestCase {
         ->method('countDefaultLanguageRevisions')
         ->willReturn($defaultLanguageRevisionCount);
     }
+    $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
+    $entityTypeManager->expects($this->any())
+      ->method('getStorage')
+      ->with('node')
+      ->willReturn($nodeStorage);
 
     $moduleHandler = $this->createMock(ModuleHandlerInterface::class);
     $moduleHandler->expects($this->any())
       ->method('invokeAll')
       ->willReturn([]);
-    $accessControl = new NodeAccessControlHandler($entityType, $grants, $nodeStorage);
+    $accessControl = new NodeAccessControlHandler($entityType, $grants, $entityTypeManager);
     $accessControl->setModuleHandler($moduleHandler);
 
     $nodeType = $this->createMock(RevisionableEntityBundleInterface::class);
@@ -170,7 +179,7 @@ class NodeOperationAccessTest extends UnitTestCase {
       FALSE,
     ];
     $data['bypass, revert'] = [
-      'revert',
+      'revert revision',
       [
         ['access content', TRUE],
         ['bypass node access', TRUE],
@@ -239,7 +248,7 @@ class NodeOperationAccessTest extends UnitTestCase {
 
     // Cannot revert if no update access.
     $data['revert, without update access, non default'] = [
-      'revert',
+      'revert revision',
       [
         ['access content', TRUE],
         ['revert all revisions', TRUE],
@@ -252,7 +261,7 @@ class NodeOperationAccessTest extends UnitTestCase {
 
     // Can revert if has update access.
     $data['revert, with update access, non default'] = [
-      'revert',
+      'revert revision',
       [
         ['access content', TRUE],
         ['revert all revisions', TRUE],
@@ -267,7 +276,7 @@ class NodeOperationAccessTest extends UnitTestCase {
 
     // Can never revert default revision.
     $data['revert, with update access, one revision, default revision'] = [
-      'revert',
+      'revert revision',
       [
         ['access content', TRUE],
         ['revert all revisions', TRUE],
@@ -282,7 +291,7 @@ class NodeOperationAccessTest extends UnitTestCase {
 
     // Can never revert default revision.
     $data['revert, with update access, more than one revision, default revision'] = [
-      'revert',
+      'revert revision',
       [
         ['access content', TRUE],
         ['revert all revisions', TRUE],

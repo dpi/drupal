@@ -6,8 +6,8 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityAccessControlHandler;
 use Drupal\Core\Entity\EntityHandlerInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -17,27 +17,27 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class MediaAccessControlHandler extends EntityAccessControlHandler implements EntityHandlerInterface {
 
   /**
-   * Media entity storage.
+   * The entity type manager.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $mediaStorage;
+  protected $entityTypeManager;
 
   /**
    * Constructs a MediaAccessControlHandler object.
    *
    * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
    *   The entity type definition.
-   * @param \Drupal\Core\Entity\EntityStorageInterface|null $mediaStorage
-   *   Media entity storage.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface|null $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct(EntityTypeInterface $entity_type, EntityStorageInterface $mediaStorage = NULL) {
+  public function __construct(EntityTypeInterface $entity_type, EntityTypeManagerInterface $entity_type_manager = NULL) {
     parent::__construct($entity_type);
-    if (!isset($mediaStorage)) {
-      @trigger_error('The $mediaStorage parameter is deprecated in Drupal 9.1.0 and will be required in 10.0.0.', E_USER_DEPRECATED);
-      $mediaStorage = \Drupal::entityTypeManager()->getStorage('media');
+    if (!isset($entity_type_manager)) {
+      @trigger_error('The $entity_type_manager parameter is deprecated in Drupal 9.1.0 and will be required in 10.0.0.', E_USER_DEPRECATED);
+      $entity_type_manager = \Drupal::entityTypeManager();
     }
-    $this->mediaStorage = $mediaStorage;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -46,7 +46,7 @@ class MediaAccessControlHandler extends EntityAccessControlHandler implements En
   public static function createInstance(ContainerInterface $container, EntityTypeInterface $entity_type) {
     return new static(
       $entity_type,
-      $container->get('entity_type.manager')->getStorage('media')
+      $container->get('entity_type.manager'),
     );
   }
 
@@ -146,7 +146,7 @@ class MediaAccessControlHandler extends EntityAccessControlHandler implements En
           // media passed in is not the default revision then access to that,
           // too.
           return AccessResult::allowedIf(
-            $this->access($this->mediaStorage->load($entity->id()), 'view', $account) &&
+            $this->access($this->entityTypeManager->getStorage($entity->getEntityTypeId())->load($entity->id()), 'view', $account) &&
             ($entity->isDefaultRevision() || $this->access($entity, 'view', $account))
           )->cachePerPermissions()->addCacheableDependency($entity);
         }
@@ -178,7 +178,7 @@ class MediaAccessControlHandler extends EntityAccessControlHandler implements En
    *   The number of revisions in the default language.
    */
   protected function countDefaultLanguageRevisions(MediaInterface $media) {
-    $count = $this->mediaStorage->getQuery()
+    $count = $this->entityTypeManager->getStorage($media->getEntityTypeId())->getQuery()
       ->allRevisions()
       ->condition($this->entityType->getKey('id'), $media->id())
       ->condition($this->entityType->getKey('default_langcode'), 1)

@@ -82,7 +82,7 @@ class NodeRevisionAccessCheck implements AccessInterface {
     // E.g route _access_node_revision: 'update' to $node->access('revert')
     $entityOperationMap = [
       'view' => 'view all revisions',
-      'update' => 'revert',
+      'update' => 'revert revision',
       'delete' => 'delete revision',
     ];
     return isset($entityOperationMap[$op]) ?
