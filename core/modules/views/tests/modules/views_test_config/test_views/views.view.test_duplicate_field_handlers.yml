@@ -17,7 +17,7 @@ display:
   default:
     display_plugin: default
     id: default
-    display_title: Master
+    display_title: Default
     position: 0
     display_options:
       access:
@@ -131,7 +131,7 @@ display:
           admin_label: ''
           operator: in
           value:
-            - article
+            article: article
           group: 1
           exposed: false
           expose:

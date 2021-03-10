@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests;
 
+use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Driver\GoutteDriver;
 use Behat\Mink\Element\Element;
 use Behat\Mink\Mink;
@@ -16,14 +17,14 @@ use Drupal\FunctionalTests\AssertLegacyTrait;
 use Drupal\Tests\block\Traits\BlockCreationTrait;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
-use Drupal\Tests\Traits\PHPUnit8Warnings;
+use Drupal\Tests\Traits\PhpUnitWarnings;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\TestTools\Comparator\MarkupInterfaceComparator;
+use Drupal\TestTools\TestVarDumper;
 use GuzzleHttp\Cookie\CookieJar;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\CssSelector\CssSelectorConverter;
+use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
+use Symfony\Component\VarDumper\VarDumper;
 
 /**
  * Provides a test case for functional Drupal tests.
@@ -35,6 +36,11 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
  * Tests extending this base class should only translate text when testing
  * translation functionality. For example, avoid wrapping test text with t()
  * or TranslatableMarkup().
+ *
+ * Using Symfony's dump() function in functional test test code will produce
+ * output on the command line; using dump() in site code will produce output in
+ * the requested web page, which can then be inspected in the HTML output from
+ * the test.
  *
  * @ingroup testing
  */
@@ -64,7 +70,9 @@ abstract class BrowserTestBase extends TestCase {
     createUser as drupalCreateUser;
   }
   use XdebugRequestTrait;
-  use PHPUnit8Warnings;
+  use PhpUnitWarnings;
+  use PhpUnitCompatibilityTrait;
+  use ExpectDeprecationTrait;
 
   /**
    * The database prefix of this test run.
@@ -142,7 +150,7 @@ abstract class BrowserTestBase extends TestCase {
    *
    * @var string
    */
-  protected $minkDefaultDriverClass = GoutteDriver::class;
+  protected $minkDefaultDriverClass = BrowserKitDriver::class;
 
   /*
    * Mink default driver params.
@@ -213,12 +221,23 @@ abstract class BrowserTestBase extends TestCase {
   protected $originalContainer;
 
   /**
+   * {@inheritdoc}
+   */
+  public static function setUpBeforeClass() {
+    parent::setUpBeforeClass();
+    VarDumper::setHandler(TestVarDumper::class . '::cliHandler');
+  }
+
+  /**
    * Initializes Mink sessions.
    */
   protected function initMink() {
     $driver = $this->getDefaultDriverInstance();
-
     if ($driver instanceof GoutteDriver) {
+      @trigger_error('Using \Behat\Mink\Driver\GoutteDriver is deprecated in drupal:9.2.0 and is removed from drupal:10.0.0. The dependencies behat/mink-goutte-driver and fabpot/goutte will be removed. See https://www.drupal.org/node/3177235', E_USER_DEPRECATED);
+    }
+
+    if ($driver instanceof BrowserKitDriver) {
       // Turn off curl timeout. Having a timeout is not a problem in a normal
       // test running, but it is a problem when debugging. Also, disable SSL
       // peer verification so that testing under HTTPS always works.
@@ -303,7 +322,10 @@ abstract class BrowserTestBase extends TestCase {
       }
     }
 
-    if (is_array($this->minkDefaultDriverArgs)) {
+    if ($this->minkDefaultDriverClass === BrowserKitDriver::class) {
+      $driver = new $this->minkDefaultDriverClass(new DrupalTestBrowser());
+    }
+    elseif (is_array($this->minkDefaultDriverArgs)) {
       // Use ReflectionClass to instantiate class with received params.
       $reflector = new \ReflectionClass($this->minkDefaultDriverClass);
       $driver = $reflector->newInstanceArgs($this->minkDefaultDriverArgs);
@@ -324,47 +346,6 @@ abstract class BrowserTestBase extends TestCase {
    */
   protected function getMinkDriverArgs() {
     return getenv('MINK_DRIVER_ARGS');
-  }
-
-  /**
-   * Provides a Guzzle middleware handler to log every response received.
-   *
-   * @return callable
-   *   The callable handler that will do the logging.
-   */
-  protected function getResponseLogHandler() {
-    return function (callable $handler) {
-      return function (RequestInterface $request, array $options) use ($handler) {
-        return $handler($request, $options)
-          ->then(function (ResponseInterface $response) use ($request) {
-            if ($this->htmlOutputEnabled) {
-
-              $caller = $this->getTestMethodCaller();
-              $html_output = 'Called from ' . $caller['function'] . ' line ' . $caller['line'];
-              $html_output .= '<hr />' . $request->getMethod() . ' request to: ' . $request->getUri();
-
-              // Get the response body as a string. Any errors are silenced as
-              // tests should not fail if there is a problem. On PHP 7.4
-              // \Drupal\Tests\migrate\Functional\process\DownloadFunctionalTest
-              // fails without the usage of a silence operator.
-              $body = @(string) $response->getBody();
-              // On redirect responses (status code starting with '3') we need
-              // to remove the meta tag that would do a browser refresh. We
-              // don't want to redirect developers away when they look at the
-              // debug output file in their browser.
-              $status_code = (string) $response->getStatusCode();
-              if ($status_code[0] === '3') {
-                $body = preg_replace('#<meta http-equiv="refresh" content=.+/>#', '', $body, 1);
-              }
-              $html_output .= '<hr />' . $body;
-              $html_output .= $this->formatHtmlOutputHeaders($response->getHeaders());
-
-              $this->htmlOutput($html_output);
-            }
-            return $response;
-          });
-      };
-    };
   }
 
   /**
@@ -536,7 +517,7 @@ abstract class BrowserTestBase extends TestCase {
   protected function getHttpClient() {
     /* @var $mink_driver \Behat\Mink\Driver\DriverInterface */
     $mink_driver = $this->getSession()->getDriver();
-    if ($mink_driver instanceof GoutteDriver) {
+    if ($this->isTestUsingGuzzleClient()) {
       return $mink_driver->getClient()->getClient();
     }
     throw new \RuntimeException('The Mink client type ' . get_class($mink_driver) . ' does not support getHttpClient().');
@@ -601,25 +582,6 @@ abstract class BrowserTestBase extends TestCase {
   }
 
   /**
-   * Translates a CSS expression to its XPath equivalent.
-   *
-   * The search is relative to the root element (HTML tag normally) of the page.
-   *
-   * @param string $selector
-   *   CSS selector to use in the search.
-   * @param bool $html
-   *   (optional) Enables HTML support. Disable it for XML documents.
-   * @param string $prefix
-   *   (optional) The prefix for the XPath expression.
-   *
-   * @return string
-   *   The equivalent XPath of a CSS expression.
-   */
-  protected function cssSelectToXpath($selector, $html = TRUE, $prefix = 'descendant-or-self::') {
-    return (new CssSelectorConverter($html))->toXPath($selector, $prefix);
-  }
-
-  /**
    * Performs an xpath search on the contents of the internal browser.
    *
    * The search is relative to the root element (HTML tag normally) of the page.
@@ -664,8 +626,14 @@ abstract class BrowserTestBase extends TestCase {
    *
    * @return string|null
    *   The HTTP header value or NULL if not found.
+   *
+   * @deprecated in drupal:9.2.0 and is removed from drupal:10.0.0. Use
+   *   $this->getSession()->getResponseHeader() instead.
+   *
+   * @see https://www.drupal.org/node/3168383
    */
   protected function drupalGetHeader($name) {
+    @trigger_error('BrowserTestBase::drupalGetHeader() is deprecated in drupal:9.2.0 and is removed from drupal:10.0.0. Use $this->getSession()->getResponseHeader() instead. See https://www.drupal.org/node/3168383', E_USER_DEPRECATED);
     return $this->getSession()->getResponseHeader($name);
   }
 

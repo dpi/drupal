@@ -92,15 +92,15 @@ class DateFilterTest extends ViewTestBase {
 
     // Because there are not operators that use the min and max fields, those
     // fields should not be in the exposed form.
-    $this->assertFieldById('edit-field-date-value-value');
-    $this->assertNoFieldById('edit-field-date-value-min');
-    $this->assertNoFieldById('edit-field-date-value-max');
+    $this->assertSession()->fieldExists('edit-field-date-value-value');
+    $this->assertSession()->fieldNotExists('edit-field-date-value-min');
+    $this->assertSession()->fieldNotExists('edit-field-date-value-max');
 
     $edit = [];
     $edit['options[operator]'] = '>';
     $edit['options[expose][operator_list][]'] = ['>', '>=', 'between'];
-    $this->drupalPostForm('admin/structure/views/nojs/handler/test_exposed_filter_datetime/default/filter/field_date_value', $edit, t('Apply'));
-    $this->drupalPostForm('admin/structure/views/view/test_exposed_filter_datetime/edit/default', [], t('Save'));
+    $this->drupalPostForm('admin/structure/views/nojs/handler/test_exposed_filter_datetime/default/filter/field_date_value', $edit, 'Apply');
+    $this->drupalPostForm('admin/structure/views/view/test_exposed_filter_datetime/edit/default', [], 'Save');
 
     $this->drupalGet('test_exposed_filter_datetime');
     $this->assertSession()->statusCodeEquals(200);
@@ -110,15 +110,15 @@ class DateFilterTest extends ViewTestBase {
     $this->assertSession()->optionExists('edit-field-date-value-op', '>');
     $this->assertSession()->optionExists('edit-field-date-value-op', '>=');
 
-    $this->assertFieldById('edit-field-date-value-value');
-    $this->assertFieldById('edit-field-date-value-min');
-    $this->assertFieldById('edit-field-date-value-max');
+    $this->assertSession()->fieldExists('edit-field-date-value-value');
+    $this->assertSession()->fieldExists('edit-field-date-value-min');
+    $this->assertSession()->fieldExists('edit-field-date-value-max');
 
     // Set the default to an excluded operator.
     $edit = [];
     $edit['options[operator]'] = '=';
     $edit['options[expose][operator_list][]'] = ['<', '>'];
-    $this->drupalPostForm('admin/structure/views/nojs/handler/test_exposed_filter_datetime/default/filter/field_date_value', $edit, t('Apply'));
+    $this->drupalPostForm('admin/structure/views/nojs/handler/test_exposed_filter_datetime/default/filter/field_date_value', $edit, 'Apply');
     $this->assertText('You selected the "Is equal to" operator as the default value but is not included in the list of limited operators.');
   }
 

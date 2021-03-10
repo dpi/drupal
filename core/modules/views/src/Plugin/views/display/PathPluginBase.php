@@ -204,6 +204,9 @@ abstract class PathPluginBase extends DisplayPluginBase implements DisplayRouter
     // Store whether the view will return a response.
     $route->setOption('returns_response', !empty($this->getPluginDefinition()['returns_response']));
 
+    // Symfony 4 requires that UTF-8 route patterns have the "utf8" option set
+    $route->setOption('utf8', TRUE);
+
     return $route;
   }
 
@@ -242,7 +245,7 @@ abstract class PathPluginBase extends DisplayPluginBase implements DisplayRouter
   }
 
   /**
-   * Determines whether a override for the path and method should happen.
+   * Determines whether an override for the path and method should happen.
    *
    * @param string $view_path
    *   The path of the view.
@@ -439,8 +442,7 @@ abstract class PathPluginBase extends DisplayPluginBase implements DisplayRouter
           '#title' => $this->t('Path'),
           '#description' => $this->t('This view will be displayed by visiting this path on your site. You may use "%" in your URL to represent values that will be used for contextual filters: For example, "node/%/feed". If needed you can even specify named route parameters like taxonomy/term/%taxonomy_term'),
           '#default_value' => $this->getOption('path'),
-          '#field_prefix' => '<span dir="ltr">' . Url::fromRoute('<none>', [], ['absolute' => TRUE])->toString(),
-          '#field_suffix' => '</span>&lrm;',
+          '#field_prefix' => '<span dir="ltr">' . Url::fromRoute('<none>', [], ['absolute' => TRUE])->toString() . '</span>&lrm;',
           '#attributes' => ['dir' => LanguageInterface::DIRECTION_LTR],
           // Account for the leading backslash.
           '#maxlength' => 254,

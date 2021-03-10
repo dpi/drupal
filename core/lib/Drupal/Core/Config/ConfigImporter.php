@@ -13,7 +13,7 @@ use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Defines a configuration importer.
@@ -23,7 +23,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  *
  * @see \Drupal\Core\Config\StorageComparerInterface
  *
- * The ConfigImporter has a identifier which is used to construct event names.
+ * The ConfigImporter has an identifier which is used to construct event names.
  * The events fired during an import are:
  * - ConfigEvents::IMPORT_VALIDATE: Events listening can throw a
  *   \Drupal\Core\Config\ConfigImporterException to prevent an import from
@@ -53,7 +53,7 @@ class ConfigImporter {
   /**
    * The event dispatcher used to notify subscribers.
    *
-   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   * @var \Symfony\Contracts\EventDispatcher\EventDispatcherInterface
    */
   protected $eventDispatcher;
 
@@ -172,7 +172,7 @@ class ConfigImporter {
    * @param \Drupal\Core\Config\StorageComparerInterface $storage_comparer
    *   A storage comparer object used to determine configuration changes and
    *   access the source and target storage objects.
-   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
+   * @param \Symfony\Contracts\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   The event dispatcher used to notify subscribers of config import events.
    * @param \Drupal\Core\Config\ConfigManagerInterface $config_manager
    *   The configuration manager.
@@ -1039,7 +1039,7 @@ class ConfigImporter {
   }
 
   /**
-   * Determines if a import is already running.
+   * Determines if an import is already running.
    *
    * @return bool
    *   TRUE if an import is already running, FALSE if not.

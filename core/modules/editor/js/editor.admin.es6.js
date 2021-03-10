@@ -7,7 +7,7 @@
  * to automatically adjust their settings based on the editor configuration.
  */
 
-(function($, _, Drupal, document) {
+(function ($, _, Drupal, document) {
   /**
    * Editor configuration namespace.
    *
@@ -173,8 +173,6 @@
               // property rule. i.e. will become true if >=1 filter rule has >=1
               // allowed property rule.
               touchedByAllowedPropertyRule: false,
-              // Analogous, but for forbidden property rule.
-              touchedBytouchedByForbiddenPropertyRule: false,
             };
           }
 
@@ -255,7 +253,7 @@
 
         let atLeastOneFound = false;
         const regex = key.replace(/\*/g, '[^ ]*');
-        _.each(_.keys(universe[tag]), key => {
+        _.each(_.keys(universe[tag]), (key) => {
           if (key.match(regex)) {
             atLeastOneFound = true;
             if (allowing) {
@@ -288,7 +286,7 @@
         allowing,
       ) {
         let atLeastOneFound = false;
-        _.each(_.keys(universe), tag => {
+        _.each(_.keys(universe), (tag) => {
           if (
             // eslint-disable-next-line no-use-before-define
             findPropertyValuesOnTag(
@@ -342,7 +340,7 @@
         }
 
         let atLeastOneFound = false;
-        _.each(propertyValues, propertyValue => {
+        _.each(propertyValues, (propertyValue) => {
           if (
             findPropertyValueOnTag(
               universe,
@@ -369,7 +367,7 @@
        */
       function deleteAllTagsFromUniverseIfAllowed(universe) {
         let atLeastOneDeleted = false;
-        _.each(_.keys(universe), tag => {
+        _.each(_.keys(universe), (tag) => {
           // eslint-disable-next-line no-use-before-define
           if (deleteFromUniverseIfAllowed(universe, tag)) {
             atLeastOneDeleted = true;
@@ -651,7 +649,9 @@
       // If any filter's current status forbids the editor feature, return
       // false.
       Drupal.filterConfiguration.update();
-      return Object.keys(Drupal.filterConfiguration.statuses).every(filterID =>
+      return Object.keys(
+        Drupal.filterConfiguration.statuses,
+      ).every((filterID) =>
         filterStatusAllowsFeature(
           Drupal.filterConfiguration.statuses[filterID],
           feature,
@@ -691,7 +691,7 @@
    *
    * @see Drupal.EditorFeature
    */
-  Drupal.EditorFeatureHTMLRule = function() {
+  Drupal.EditorFeatureHTMLRule = function () {
     /**
      *
      * @type {Object}
@@ -757,18 +757,18 @@
    *
    * @see Drupal.EditorFeatureHTMLRule
    */
-  Drupal.EditorFeature = function(name) {
+  Drupal.EditorFeature = function (name) {
     this.name = name;
     this.rules = [];
   };
 
   /**
-   * Adds a HTML rule to the list of HTML rules for this feature.
+   * Adds an HTML rule to the list of HTML rules for this feature.
    *
    * @param {Drupal.EditorFeatureHTMLRule} rule
    *   A text editor feature HTML rule.
    */
-  Drupal.EditorFeature.prototype.addHTMLRule = function(rule) {
+  Drupal.EditorFeature.prototype.addHTMLRule = function (rule) {
     this.rules.push(rule);
   };
 
@@ -795,7 +795,7 @@
    *
    * @see Drupal.FilterHTMLRule
    */
-  Drupal.FilterStatus = function(name) {
+  Drupal.FilterStatus = function (name) {
     /**
      *
      * @type {string}
@@ -816,12 +816,12 @@
   };
 
   /**
-   * Adds a HTML rule to the list of HTML rules for this filter.
+   * Adds an HTML rule to the list of HTML rules for this filter.
    *
    * @param {Drupal.FilterHTMLRule} rule
    *   A text filter HTML rule.
    */
-  Drupal.FilterStatus.prototype.addHTMLRule = function(rule) {
+  Drupal.FilterStatus.prototype.addHTMLRule = function (rule) {
     this.rules.push(rule);
   };
 
@@ -900,7 +900,7 @@
    *
    * @see Drupal.FilterStatus
    */
-  Drupal.FilterHTMLRule = function() {
+  Drupal.FilterHTMLRule = function () {
     // Allow or forbid tags.
     this.tags = [];
     this.allow = null;
@@ -915,7 +915,7 @@
     return this;
   };
 
-  Drupal.FilterHTMLRule.prototype.clone = function() {
+  Drupal.FilterHTMLRule.prototype.clone = function () {
     const clone = new Drupal.FilterHTMLRule();
     clone.tags = this.tags.slice(0);
     clone.allow = this.allow;
@@ -981,7 +981,7 @@
      */
     update() {
       Object.keys(Drupal.filterConfiguration.statuses || {}).forEach(
-        filterID => {
+        (filterID) => {
           // Update status.
           Drupal.filterConfiguration.statuses[filterID].active = $(
             `[name="filters[${filterID}][status]"]`,
@@ -1015,7 +1015,7 @@
       $context
         .find('#filters-status-wrapper input.form-checkbox')
         .once('filter-editor-status')
-        .each(function() {
+        .each(function () {
           const $checkbox = $(this);
           const nameAttribute = $checkbox.attr('name');
 

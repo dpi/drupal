@@ -250,6 +250,14 @@ class Tables implements TablesInterface {
             $key++;
           }
         }
+        // If there are no additional specifiers but the field has a main
+        // property, use that to look up the column name.
+        elseif ($field_storage && $column) {
+          $columns = $field_storage->getColumns();
+          if (isset($columns[$column])) {
+            $sql_column = $table_mapping->getFieldColumnName($field_storage, $column);
+          }
+        }
 
         $table = $this->ensureEntityTable($index_prefix, $sql_column, $type, $langcode, $base_table, $entity_id_field, $entity_tables);
       }
@@ -408,7 +416,7 @@ class Tables implements TablesInterface {
       $entity_type_id = $this->sqlQuery->getMetaData('entity_type');
       $entity_type = $this->entityTypeManager->getActiveDefinition($entity_type_id);
       // Only the data table follows the entity language key, dedicated field
-      // tables have an hard-coded 'langcode' column.
+      // tables have a hard-coded 'langcode' column.
       $langcode_key = $entity_type->getDataTable() == $table ? $entity_type->getKey('langcode') : 'langcode';
       $placeholder = ':langcode' . $this->sqlQuery->nextPlaceholder();
       $join_condition .= ' AND [%alias].[' . $langcode_key . '] = ' . $placeholder;

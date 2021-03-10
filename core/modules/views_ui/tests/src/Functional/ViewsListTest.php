@@ -50,14 +50,14 @@ class ViewsListTest extends UITestBase {
     // Check if we can access the main views admin page.
     $this->drupalGet('admin/structure/views');
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertSession()->linkExists(t('Add view'));
+    $this->assertSession()->linkExists('Add view');
 
     // Check that there is a link to the content view without a destination
     // parameter.
     $this->drupalGet('admin/structure/views');
     $links = $this->getSession()->getPage()->findAll('xpath', "//a[contains(@href, 'admin/structure/views/view/content')]");
     $this->assertStringEndsWith('admin/structure/views/view/content', $links[0]->getAttribute('href'));
-    $this->assertLinkByHref('admin/structure/views/view/content/delete?destination');
+    $this->assertSession()->linkByHrefExists('admin/structure/views/view/content/delete?destination');
 
     // Count default views to be subtracted from the limit.
     $views = count(Views::getEnabledViews());

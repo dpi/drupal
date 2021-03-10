@@ -7,6 +7,9 @@ use Drupal\Core\Database\Connection as DatabaseConnection;
 use Drupal\Core\Database\DatabaseAccessDeniedException;
 use Drupal\Core\Database\DatabaseNotFoundException;
 use Drupal\Core\Database\StatementInterface;
+use Drupal\Core\Database\StatementWrapper;
+
+// cSpell:ignore ilike nextval
 
 /**
  * @addtogroup database
@@ -35,6 +38,16 @@ class Connection extends DatabaseConnection {
    * PDOException message. It will need to get extracted.
    */
   const CONNECTION_FAILURE = '08006';
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $statementClass = NULL;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $statementWrapperClass = StatementWrapper::class;
 
   /**
    * A map of condition operators to PostgreSQL operators.
@@ -258,7 +271,7 @@ class Connection extends DatabaseConnection {
   public function nextId($existing = 0) {
 
     // Retrieve the name of the sequence. This information cannot be cached
-    // because the prefix may change, for example, like it does in simpletests.
+    // because the prefix may change, for example, like it does in tests.
     $sequence_name = $this->makeSequenceName('sequences', 'value');
 
     // When PostgreSQL gets a value too small then it will lock the table,
@@ -306,7 +319,7 @@ class Connection extends DatabaseConnection {
   }
 
   /**
-   * Add a new savepoint with an unique name.
+   * Add a new savepoint with a unique name.
    *
    * The main use for this method is to mimic InnoDB functionality, which
    * provides an inherent savepoint before any query in a transaction.

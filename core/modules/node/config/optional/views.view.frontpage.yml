@@ -132,7 +132,7 @@ display:
           admin_label: ''
           operator: in
           value:
-            - '***LANGUAGE_language_content***'
+            '***LANGUAGE_language_content***': '***LANGUAGE_language_content***'
           group: 1
           exposed: false
           expose:
@@ -243,7 +243,7 @@ display:
       arguments: {  }
       display_extenders: {  }
     display_plugin: default
-    display_title: Master
+    display_title: Default
     id: default
     position: 0
     cache_metadata:

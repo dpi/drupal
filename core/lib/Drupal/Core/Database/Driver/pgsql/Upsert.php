@@ -4,6 +4,8 @@ namespace Drupal\Core\Database\Driver\pgsql;
 
 use Drupal\Core\Database\Query\Upsert as QueryUpsert;
 
+// cSpell:ignore nextval setval
+
 /**
  * PostgreSQL implementation of \Drupal\Core\Database\Query\Upsert.
  */
@@ -32,13 +34,13 @@ class Upsert extends QueryUpsert {
           fwrite($blobs[$blob_count], $insert_values[$idx]);
           rewind($blobs[$blob_count]);
 
-          $stmt->bindParam(':db_insert_placeholder_' . $max_placeholder++, $blobs[$blob_count], \PDO::PARAM_LOB);
+          $stmt->getClientStatement()->bindParam(':db_insert_placeholder_' . $max_placeholder++, $blobs[$blob_count], \PDO::PARAM_LOB);
 
           // Pre-increment is faster in PHP than increment.
           ++$blob_count;
         }
         else {
-          $stmt->bindParam(':db_insert_placeholder_' . $max_placeholder++, $insert_values[$idx]);
+          $stmt->getClientStatement()->bindParam(':db_insert_placeholder_' . $max_placeholder++, $insert_values[$idx]);
         }
       }
       // Check if values for a serial field has been passed.
@@ -78,7 +80,7 @@ class Upsert extends QueryUpsert {
     // example, \Drupal\Core\Cache\DatabaseBackend.
     $this->connection->addSavepoint();
     try {
-      $this->connection->query($stmt, [], $options);
+      $stmt->execute(NULL, $options);
       $this->connection->releaseSavepoint();
     }
     catch (\Exception $e) {
@@ -98,8 +100,8 @@ class Upsert extends QueryUpsert {
 
     // Default fields are always placed first for consistency.
     $insert_fields = array_merge($this->defaultFields, $this->insertFields);
-    $insert_fields = array_map(function ($f) {
-      return $this->connection->escapeField($f);
+    $insert_fields = array_map(function ($field) {
+      return $this->connection->escapeField($field);
     }, $insert_fields);
 
     $query = $comments . 'INSERT INTO {' . $this->table . '} (' . implode(', ', $insert_fields) . ') VALUES ';
@@ -112,6 +114,8 @@ class Upsert extends QueryUpsert {
 
     $update = [];
     foreach ($insert_fields as $field) {
+      // The "excluded." prefix causes the field to refer to the value for field
+      // that would have been inserted had there been no conflict.
       $update[] = "$field = EXCLUDED.$field";
     }
 

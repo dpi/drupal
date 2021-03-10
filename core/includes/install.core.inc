@@ -38,7 +38,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Route;
 use Drupal\user\Entity\User;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\TransferException;
 
 /**
  * Do not run the task during the current installation request.
@@ -132,7 +132,7 @@ function install_drupal($class_loader, $settings = [], callable $callback = NULL
   // $install_state['installation_finished'] is TRUE. In case the last task
   // has been processed, remove the global $install_state, so other code can
   // reliably check whether it is running during the installer.
-  // @see drupal_installation_attempted()
+  // @see \Drupal\Core\Installer\InstallerKernel::installationAttempted()
   $state = $install_state;
   if (!empty($install_state['installation_finished'])) {
     unset($GLOBALS['install_state']);
@@ -249,7 +249,7 @@ function install_state_defaults() {
     // The server URL where the interface translation files can be downloaded.
     // Tokens in the pattern will be replaced by appropriate values for the
     // required translation file.
-    'server_pattern' => 'http://ftp.drupal.org/files/translations/%core/%project/%project-%version.%language.po',
+    'server_pattern' => 'https://ftp.drupal.org/files/translations/%core/%project/%project-%version.%language.po',
     // Installation tasks can set this to TRUE to force the page request to
     // end (even if there is no themeable output), in the case of an interactive
     // installation. This is needed only rarely; for example, it would be used
@@ -310,9 +310,6 @@ function install_begin_request($class_loader, &$install_state) {
   if (!empty($install_state['parameters']['langcode'])) {
     $install_state['parameters']['langcode'] = preg_replace('/[^a-zA-Z_0-9\-]/', '', $install_state['parameters']['langcode']);
   }
-
-  // Allow command line scripts to override server variables used by Drupal.
-  require_once __DIR__ . '/bootstrap.inc';
 
   // If the hash salt leaks, it becomes possible to forge a valid testing user
   // agent, install a new copy of Drupal, and take over the original site.
@@ -667,8 +664,12 @@ function install_run_task($task, &$install_state) {
       // @todo Replace this when we refactor the installer to use a request-
       //   response workflow.
       if ($output instanceof Response) {
+        if (\Drupal::request()->hasSession()) {
+          \Drupal::request()->getSession()->save();
+        }
+        // Send the response.
         $output->send();
-        $output = NULL;
+        exit;
       }
       // The task is complete when we try to access the batch page and receive
       // FALSE in return, since this means we are at a URL where we are no
@@ -1400,6 +1401,7 @@ function install_download_translation(&$install_state) {
   // Check whether all conditions are met to download. Download the translation
   // if possible.
   $requirements = install_check_translations($install_state['parameters']['langcode'], $install_state['server_pattern']);
+  // Render requirements if any warnings or errors returned.
   if ($output = install_display_requirements($install_state, $requirements)) {
     return $output;
   }
@@ -1444,7 +1446,7 @@ function install_retrieve_file($uri, $destination) {
       return FALSE;
     }
   }
-  catch (RequestException $e) {
+  catch (TransferException $e) {
     return FALSE;
   }
   return file_put_contents($path, $data) !== FALSE;
@@ -1464,7 +1466,7 @@ function install_check_localization_server($uri) {
     \Drupal::httpClient()->head($uri);
     return TRUE;
   }
-  catch (RequestException $e) {
+  catch (TransferException $e) {
     return FALSE;
   }
 }
@@ -1694,11 +1696,12 @@ function install_download_additional_translations_operations(&$install_state) {
   $languages = \Drupal::languageManager()->getLanguages();
   $operations = [];
   foreach ($languages as $langcode => $language) {
-    // The installer language was already downloaded. Check downloads for the
-    // other languages if any. Ignore any download errors here, since we
-    // are in the middle of an install process and there is no way back. We
-    // will not import what we cannot download.
-    if ($langcode != 'en' && $langcode != $install_state['parameters']['langcode']) {
+    // The installer language was already downloaded. Available translations are
+    // stored in $install_state. Check downloads for the other languages if any.
+    // Ignore any download errors here, since we are in the middle of an install
+    // process and there is no way back. We will not import what we cannot
+    // download.
+    if (!isset($install_state['translations'][$langcode])) {
       $operations[] = ['install_check_translations', [$langcode, $install_state['server_pattern']]];
     }
   }
@@ -1889,11 +1892,9 @@ function _install_module_batch($module, $module_name, &$context) {
  * @param string $server_pattern
  *   Server access pattern (to replace language code, version number, etc. in).
  *
- * @return array|null
- *   Requirements compliance array. If the translation was downloaded
- *   successfully then an empty array is returned. Otherwise the requirements
- *   error with detailed information. NULL if the file already exists for this
- *   language code.
+ * @return array
+ *   Requirements compliance array. If the translation cannot be downloaded this
+ *   will contain a requirements error with detailed information.
  */
 function install_check_translations($langcode, $server_pattern) {
   $requirements = [];
@@ -1920,11 +1921,6 @@ function install_check_translations($langcode, $server_pattern) {
     $readable = is_readable($translations_directory);
     $writable = is_writable($translations_directory);
     $translations_directory_exists = TRUE;
-  }
-
-  // The file already exists, no need to attempt to download.
-  if ($existing_file = glob($translations_directory . '/drupal-*.' . $langcode . '.po')) {
-    return;
   }
 
   $version = \Drupal::VERSION;

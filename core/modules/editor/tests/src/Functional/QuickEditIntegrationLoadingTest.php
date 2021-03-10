@@ -91,7 +91,7 @@ class QuickEditIntegrationLoadingTest extends BrowserTestBase {
 
       $client = $this->getHttpClient();
 
-      // Retrieving the untransformed text should result in an 403 response and
+      // Retrieving the untransformed text should result in a 403 response and
       // return a different error message depending of the missing permission.
       $response = $client->post($this->buildUrl('editor/node/1/body/en/full'), [
         'query' => http_build_query([MainContentViewSubscriber::WRAPPER_FORMAT => 'drupal_ajax']),
@@ -140,8 +140,8 @@ class QuickEditIntegrationLoadingTest extends BrowserTestBase {
     $this->assertEquals(200, $response->getStatusCode());
     $ajax_commands = Json::decode($response->getBody());
     $this->assertCount(1, $ajax_commands, 'The untransformed text POST request results in one AJAX command.');
-    $this->assertIdentical('editorGetUntransformedText', $ajax_commands[0]['command'], 'The first AJAX command is an editorGetUntransformedText command.');
-    $this->assertIdentical('<p>Do you also love Drupal?</p><img src="druplicon.png" data-caption="Druplicon" />', $ajax_commands[0]['data'], 'The editorGetUntransformedText command contains the expected data.');
+    $this->assertSame('editorGetUntransformedText', $ajax_commands[0]['command'], 'The first AJAX command is an editorGetUntransformedText command.');
+    $this->assertSame('<p>Do you also love Drupal?</p><img src="druplicon.png" data-caption="Druplicon" />', $ajax_commands[0]['data'], 'The editorGetUntransformedText command contains the expected data.');
   }
 
 }

@@ -43,27 +43,11 @@ abstract class MultilingualReviewPageTestBase extends MigrateUpgradeTestBase {
   public function testMigrateUpgradeReviewPage() {
     $this->prepare();
     // Start the upgrade process.
-    $this->drupalGet('/upgrade');
-    $this->drupalPostForm(NULL, [], t('Continue'));
-
-    // Get valid credentials.
-    $edits = $this->translatePostValues($this->getCredentials());
-
-    $this->drupalPostForm(NULL, $edits, t('Review upgrade'));
-    $this->drupalPostForm(NULL, [], t('I acknowledge I may lose data. Continue anyway.'));
-
-    // Ensure there are no errors about missing modules from the test module.
-    $session = $this->assertSession();
-    $session->pageTextNotContains(t('Source module not found for migration_provider_no_annotation.'));
-    $session->pageTextNotContains(t('Source module not found for migration_provider_test.'));
-    $session->pageTextNotContains(t('Destination module not found for migration_provider_test'));
-    // Ensure there are no errors about any other missing migration providers.
-    $session->pageTextNotContains(t('module not found'));
+    $this->submitCredentialForm();
+    $this->submitForm([], 'I acknowledge I may lose data. Continue anyway.');
 
     // Test the upgrade paths.
-    $available_paths = $this->getAvailablePaths();
-    $missing_paths = $this->getMissingPaths();
-    $this->assertUpgradePaths($session, $available_paths, $missing_paths);
+    $this->assertReviewForm();
 
     // Check there are no errors when a module does not have any migrations and
     // does not need any. Test with a module that is in both Drupal 6 and
@@ -77,16 +61,15 @@ abstract class MultilingualReviewPageTestBase extends MigrateUpgradeTestBase {
 
     // Start the upgrade process.
     $this->drupalGet('/upgrade');
-    $this->drupalPostForm(NULL, [], t('Continue'));
-    $this->drupalPostForm(NULL, $edits, t('Review upgrade'));
-    $this->drupalPostForm(NULL, [], t('I acknowledge I may lose data. Continue anyway.'));
+    $this->submitForm([], 'Continue');
+    $this->submitForm($this->edits, 'Review upgrade');
+    $this->submitForm([], 'I acknowledge I may lose data. Continue anyway.');
 
     // Test the upgrade paths. First remove the module from the available paths
     // list.
     $available_paths = $this->getAvailablePaths();
     $available_paths = array_diff($available_paths, [$module_name]);
-    $missing_paths = $this->getMissingPaths();
-    $this->assertUpgradePaths($session, $available_paths, $missing_paths);
+    $this->assertReviewForm($available_paths);
   }
 
   /**

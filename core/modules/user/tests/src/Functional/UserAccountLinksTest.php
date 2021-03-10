@@ -101,7 +101,7 @@ class UserAccountLinksTest extends BrowserTestBase {
 
     // Disable the 'My account' link.
     $edit['links[menu_plugin_id:user.page][enabled]'] = FALSE;
-    $this->drupalPostForm('admin/structure/menu/manage/account', $edit, t('Save'));
+    $this->drupalPostForm('admin/structure/menu/manage/account', $edit, 'Save');
 
     // Get the homepage.
     $this->drupalGet('<front>');
@@ -137,8 +137,17 @@ class UserAccountLinksTest extends BrowserTestBase {
     // Check the page title for registered users is "My Account" in menus.
     $this->drupalLogin($this->drupalCreateUser());
     // After login, the client is redirected to /user.
-    $this->assertSession()->linkExists(t('My account'), 0, "Page title of /user is 'My Account' in menus for registered users");
-    $this->assertLinkByHref(\Drupal::urlGenerator()->generate('user.page'), 0);
+    $this->assertSession()->linkExists('My account', 0, "Page title of /user is 'My Account' in menus for registered users");
+    $this->assertSession()->linkByHrefExists(\Drupal::urlGenerator()->generate('user.page'), 0);
+  }
+
+  /**
+   * Ensures that logout url redirects an anonymous user to the front page.
+   */
+  public function testAnonymousLogout() {
+    $this->drupalGet('user/logout');
+    $this->assertSession()->addressEquals('/');
+    $this->assertSession()->statusCodeEquals(200);
   }
 
 }

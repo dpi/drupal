@@ -3,7 +3,7 @@
 namespace Drupal\Core\Entity\Query;
 
 /**
- * Defines a interface for aggregated entity queries.
+ * Defines an interface for aggregated entity queries.
  */
 interface QueryAggregateInterface extends QueryInterface {
 
@@ -135,6 +135,7 @@ interface QueryAggregateInterface extends QueryInterface {
    * @return array
    *   A list of result row arrays. Each result row contains the aggregate
    *   results as keys and also the groupBy columns as keys:
+   *
    * @code
    * $result = $query
    *   ->aggregate('nid', 'count')

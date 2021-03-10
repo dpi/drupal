@@ -164,8 +164,8 @@ class ExtensionDiscovery {
     $searchdirs[static::ORIGIN_SITES_ALL] = 'sites/all';
 
     // Search for contributed and custom extensions in top-level directories.
-    // The scan uses a whitelist to limit recursion to the expected extension
-    // type specific directory names only.
+    // The scan uses a list of extension types to limit recursion to the
+    // expected extension type specific directory names only.
     $searchdirs[static::ORIGIN_ROOT] = '';
 
     // Simpletest uses the regular built-in multi-site functionality of Drupal
@@ -174,7 +174,7 @@ class ExtensionDiscovery {
     // test site environment, because the site directories are not the same.
     // Therefore, add the site directory of the parent site to the search paths,
     // so that contained extensions are still discovered.
-    // @see \Drupal\simpletest\WebTestBase::setUp()
+    // @see \Drupal\Core\Test\FunctionalTestSetupTrait::prepareSettings().
     if ($parent_site = Settings::get('test_parent_site')) {
       $searchdirs[static::ORIGIN_PARENT_SITE] = $parent_site;
     }

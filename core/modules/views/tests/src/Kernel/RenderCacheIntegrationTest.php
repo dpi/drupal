@@ -159,9 +159,9 @@ class RenderCacheIntegrationTest extends ViewsKernelTestBase {
 
       $result = $this->cssSelect('div.views-row');
       $count = count($result);
-      $this->assertEqual($count, 1);
+      $this->assertEqual(1, $count);
 
-      $this->assertEqual((string) $result[0]->div->span, (string) $entity->id());
+      $this->assertEqual((string) $entity->id(), (string) $result[0]->div->span);
     };
 
     // Execute the view once with a static renderable and one with a full
@@ -185,7 +185,7 @@ class RenderCacheIntegrationTest extends ViewsKernelTestBase {
   }
 
   /**
-   * Tests a entity-based view's cache tags when using the "none" cache plugin.
+   * Tests an entity-based view's cache tags when using the "none" cache plugin.
    */
   public function testEntityBasedViewCacheTagsWithCachePluginNone() {
     $view = Views::getview('entity_test_row');
@@ -198,7 +198,7 @@ class RenderCacheIntegrationTest extends ViewsKernelTestBase {
   }
 
   /**
-   * Tests a entity-based view's cache tags when using the "tag" cache plugin.
+   * Tests an entity-based view's cache tags when using the "tag" cache plugin.
    */
   public function testEntityBasedViewCacheTagsWithCachePluginTag() {
     $view = Views::getview('entity_test_row');
@@ -211,7 +211,7 @@ class RenderCacheIntegrationTest extends ViewsKernelTestBase {
   }
 
   /**
-   * Tests a entity-based view's cache tags when using the "time" cache plugin.
+   * Tests an entity-based view's cache tags when using the "time" cache plugin.
    */
   public function testEntityBasedViewCacheTagsWithCachePluginTime() {
     $view = Views::getview('entity_test_row');

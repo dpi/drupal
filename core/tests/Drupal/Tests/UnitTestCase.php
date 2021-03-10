@@ -9,17 +9,25 @@ use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\StringTranslation\PluralTranslatableMarkup;
-use Drupal\Tests\Traits\PHPUnit8Warnings;
+use Drupal\Tests\Traits\PhpUnitWarnings;
+use Drupal\TestTools\TestVarDumper;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\VarDumper\VarDumper;
+use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 
 /**
  * Provides a base class and helpers for Drupal unit tests.
+ *
+ * Using Symfony's dump() function() in Unit tests will produce output on the
+ * command line.
  *
  * @ingroup testing
  */
 abstract class UnitTestCase extends TestCase {
 
-  use PHPUnit8Warnings;
+  use PhpUnitWarnings;
+  use PhpUnitCompatibilityTrait;
+  use ExpectDeprecationTrait;
 
   /**
    * The random generator.
@@ -34,6 +42,14 @@ abstract class UnitTestCase extends TestCase {
    * @var string
    */
   protected $root;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function setUpBeforeClass() {
+    parent::setUpBeforeClass();
+    VarDumper::setHandler(TestVarDumper::class . '::cliHandler');
+  }
 
   /**
    * {@inheritdoc}
@@ -87,8 +103,14 @@ abstract class UnitTestCase extends TestCase {
    * @param array $expected
    * @param array $actual
    * @param string $message
+   *
+   * @deprecated in drupal:9.1.0 and is removed from drupal:10.0.0. Use
+   *   ::assertEquals, ::assertEqualsCanonicalizing, or ::assertSame instead.
+   *
+   * @see https://www.drupal.org/node/3136304
    */
   protected function assertArrayEquals(array $expected, array $actual, $message = NULL) {
+    @trigger_error(__METHOD__ . "() is deprecated in drupal:9.1.0 and is removed from drupal:10.0.0. Use ::assertEquals(), ::assertEqualsCanonicalizing(), or ::assertSame() instead. See https://www.drupal.org/node/3136304", E_USER_DEPRECATED);
     ksort($expected);
     ksort($actual);
     $this->assertEquals($expected, $actual, !empty($message) ? $message : '');

@@ -5,6 +5,7 @@ namespace Drupal\KernelTests\Core\Database;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Database\TransactionOutOfOrderException;
 use Drupal\Core\Database\TransactionNoActiveException;
+use PHPUnit\Framework\Error\Warning;
 
 /**
  * Tests the transaction abstraction system.
@@ -75,7 +76,7 @@ class TransactionTest extends DatabaseTestBase {
       // Roll back the transaction, if requested.
       // This rollback should propagate to the last savepoint.
       $txn->rollBack();
-      $this->assertTrue(($this->connection->transactionDepth() == $depth), 'Transaction has rolled back to the last savepoint after calling rollBack().');
+      $this->assertSame($depth, $this->connection->transactionDepth(), 'Transaction has rolled back to the last savepoint after calling rollBack().');
     }
   }
 
@@ -101,7 +102,7 @@ class TransactionTest extends DatabaseTestBase {
     $txn = $this->connection->startTransaction();
 
     $depth2 = $this->connection->transactionDepth();
-    $this->assertTrue($depth < $depth2, 'Transaction depth is has increased with new transaction.');
+    $this->assertGreaterThan($depth, $depth2, 'Transaction depth has increased with new transaction.');
 
     // Insert a single row into the testing table.
     $this->connection->insert('test')
@@ -133,7 +134,7 @@ class TransactionTest extends DatabaseTestBase {
       // Roll back the transaction, if requested.
       // This rollback should propagate to the last savepoint.
       $txn->rollBack();
-      $this->assertTrue(($this->connection->transactionDepth() == $depth), 'Transaction has rolled back to the last savepoint after calling rollBack().');
+      $this->assertSame($depth, $this->connection->transactionDepth(), 'Transaction has rolled back to the last savepoint after calling rollBack().');
     }
   }
 
@@ -151,9 +152,9 @@ class TransactionTest extends DatabaseTestBase {
       // Neither of the rows we inserted in the two transaction layers
       // should be present in the tables post-rollback.
       $saved_age = $this->connection->query('SELECT [age] FROM {test} WHERE [name] = :name', [':name' => 'DavidB'])->fetchField();
-      $this->assertNotIdentical($saved_age, '24', 'Cannot retrieve DavidB row after commit.');
+      $this->assertNotSame('24', $saved_age, 'Cannot retrieve DavidB row after commit.');
       $saved_age = $this->connection->query('SELECT [age] FROM {test} WHERE [name] = :name', [':name' => 'DanielB'])->fetchField();
-      $this->assertNotIdentical($saved_age, '19', 'Cannot retrieve DanielB row after commit.');
+      $this->assertNotSame('19', $saved_age, 'Cannot retrieve DanielB row after commit.');
     }
     catch (\Exception $e) {
       $this->fail($e->getMessage());
@@ -173,9 +174,9 @@ class TransactionTest extends DatabaseTestBase {
 
       // Because we committed, both of the inserted rows should be present.
       $saved_age = $this->connection->query('SELECT [age] FROM {test} WHERE [name] = :name', [':name' => 'DavidA'])->fetchField();
-      $this->assertIdentical($saved_age, '24', 'Can retrieve DavidA row after commit.');
+      $this->assertSame('24', $saved_age, 'Can retrieve DavidA row after commit.');
       $saved_age = $this->connection->query('SELECT [age] FROM {test} WHERE [name] = :name', [':name' => 'DanielA'])->fetchField();
-      $this->assertIdentical($saved_age, '19', 'Can retrieve DanielA row after commit.');
+      $this->assertSame('19', $saved_age, 'Can retrieve DanielA row after commit.');
     }
     catch (\Exception $e) {
       $this->fail($e->getMessage());
@@ -258,18 +259,19 @@ class TransactionTest extends DatabaseTestBase {
       $transaction = $this->connection->startTransaction();
       $this->insertRow('row');
       $this->executeDDLStatement();
-      // Rollback the outer transaction.
+
       try {
+        // Rollback the outer transaction.
         $transaction->rollBack();
-        unset($transaction);
-        // @todo An exception should be triggered here, but is not because
-        // "ROLLBACK" fails silently in MySQL if there is no transaction active.
-        // @see https://www.drupal.org/project/drupal/issues/2736777
-        // $this->fail('Rolling back a transaction containing DDL should fail.');
+        // @see \Drupal\Core\Database\Driver\mysql\Connection::rollBack()
+        if (PHP_VERSION_ID >= 80000) {
+          $this->fail('Rolling back a transaction containing DDL should produce a warning.');
+        }
       }
-      catch (TransactionNoActiveException $e) {
-        // Expected exception; just continue testing.
+      catch (Warning $warning) {
+        $this->assertSame('Rollback attempted when there is no active transaction. This can cause data integrity issues.', $warning->getMessage());
       }
+      unset($transaction);
       $this->assertRowPresent('row');
     }
   }

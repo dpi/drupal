@@ -130,9 +130,9 @@ class UpdateScriptTest extends BrowserTestBase {
     $this->drupalGet($this->updateUrl, ['external' => TRUE]);
     $this->updateRequirementsProblem();
     $this->clickLink(t('Continue'));
-    $this->assertText(t('No pending updates.'), 'End of update process was reached.');
+    $this->assertText('No pending updates.');
     // Confirm that all caches were cleared.
-    $this->assertText(t('hook_cache_flush() invoked for update_script_test.module.'), 'Caches were cleared when there were no requirements warnings or errors.');
+    $this->assertText('hook_cache_flush() invoked for update_script_test.module.');
 
     // If there is a requirements warning, we expect it to be initially
     // displayed, but clicking the link to proceed should allow us to go
@@ -150,9 +150,9 @@ class UpdateScriptTest extends BrowserTestBase {
     $this->clickLink(t('Continue'));
     $this->clickLink(t('Apply pending updates'));
     $this->checkForMetaRefresh();
-    $this->assertText(t('The update_script_test_update_8001() update was executed successfully.'), 'End of update process was reached.');
+    $this->assertText('The update_script_test_update_8001() update was executed successfully.');
     // Confirm that all caches were cleared.
-    $this->assertText(t('hook_cache_flush() invoked for update_script_test.module.'), 'Caches were cleared after resolving a requirements warning and applying updates.');
+    $this->assertText('hook_cache_flush() invoked for update_script_test.module.');
 
     // Now try again without pending updates to make sure that works too.
     $this->drupalGet($this->updateUrl, ['external' => TRUE]);
@@ -160,9 +160,9 @@ class UpdateScriptTest extends BrowserTestBase {
     $this->clickLink('try again');
     $this->assertNoText('This is a requirements warning provided by the update_script_test module.');
     $this->clickLink(t('Continue'));
-    $this->assertText(t('No pending updates.'), 'End of update process was reached.');
+    $this->assertText('No pending updates.');
     // Confirm that all caches were cleared.
-    $this->assertText(t('hook_cache_flush() invoked for update_script_test.module.'), 'Caches were cleared after applying updates and re-running the script.');
+    $this->assertText('hook_cache_flush() invoked for update_script_test.module.');
 
     // If there is a requirements error, it should be displayed even after
     // clicking the link to proceed (since the problem that triggered the error
@@ -414,7 +414,6 @@ class UpdateScriptTest extends BrowserTestBase {
 
     // Visit update.php and make sure we can click through to the 'No pending
     // updates' page without errors.
-    $assert_session = $this->assertSession();
     $this->drupalGet($this->updateUrl, ['external' => TRUE]);
     $this->updateRequirementsProblem();
     $this->clickLink(t('Continue'));
@@ -487,7 +486,7 @@ class UpdateScriptTest extends BrowserTestBase {
       $edit = [
         "modules[$extension_machine_name][enable]" => $extension_machine_name,
       ];
-      $this->drupalPostForm('admin/modules', $edit, t('Install'));
+      $this->drupalPostForm('admin/modules', $edit, 'Install');
     }
     elseif ($extension_type === 'theme') {
       $this->drupalGet('admin/appearance');
@@ -518,7 +517,7 @@ class UpdateScriptTest extends BrowserTestBase {
     $this->drupalGet($this->updateUrl, ['external' => TRUE]);
     $this->updateRequirementsProblem();
     $this->clickLink(t('Continue'));
-    $this->assertText(t('No pending updates.'));
+    $this->assertText('No pending updates.');
     $this->assertSession()->linkNotExists('Administration pages');
     $this->assertEmpty($this->xpath('//main//a[contains(@href, :href)]', [':href' => 'update.php']));
     $this->clickLink('Front page');
@@ -533,7 +532,7 @@ class UpdateScriptTest extends BrowserTestBase {
     $this->drupalGet($this->updateUrl, ['external' => TRUE]);
     $this->updateRequirementsProblem();
     $this->clickLink(t('Continue'));
-    $this->assertText(t('No pending updates.'));
+    $this->assertText('No pending updates.');
     $this->assertSession()->linkExists('Administration pages');
     $this->assertEmpty($this->xpath('//main//a[contains(@href, :href)]', [':href' => 'update.php']));
     $this->clickLink('Administration pages');
@@ -548,16 +547,16 @@ class UpdateScriptTest extends BrowserTestBase {
     $this->assertNull($initial_maintenance_mode, 'Site is not in maintenance mode.');
     $this->runUpdates($initial_maintenance_mode);
     $final_maintenance_mode = $this->container->get('state')->get('system.maintenance_mode');
-    $this->assertEqual($final_maintenance_mode, $initial_maintenance_mode, 'Maintenance mode should not have changed after database updates.');
+    $this->assertEqual($initial_maintenance_mode, $final_maintenance_mode, 'Maintenance mode should not have changed after database updates.');
 
     // Reset the static cache to ensure we have the most current setting.
     $schema_version = drupal_get_installed_schema_version('update_script_test', TRUE);
-    $this->assertEqual($schema_version, 8001, 'update_script_test schema version is 8001 after updating.');
+    $this->assertEqual(8001, $schema_version, 'update_script_test schema version is 8001 after updating.');
 
     // Set the installed schema version to one less than the current update.
     drupal_set_installed_schema_version('update_script_test', $schema_version - 1);
     $schema_version = drupal_get_installed_schema_version('update_script_test', TRUE);
-    $this->assertEqual($schema_version, 8000, 'update_script_test schema version overridden to 8000.');
+    $this->assertEqual(8000, $schema_version, 'update_script_test schema version overridden to 8000.');
 
     // Click through update.php with 'access administration pages' and
     // 'access site reports' permissions.
@@ -593,7 +592,7 @@ class UpdateScriptTest extends BrowserTestBase {
     $this->runUpdates($initial_maintenance_mode);
     $final_maintenance_mode = $this->container->get('state')
       ->get('system.maintenance_mode');
-    $this->assertEqual($final_maintenance_mode, $initial_maintenance_mode, 'Maintenance mode should not have changed after database updates.');
+    $this->assertEqual($initial_maintenance_mode, $final_maintenance_mode, 'Maintenance mode should not have changed after database updates.');
   }
 
   /**
@@ -617,12 +616,12 @@ class UpdateScriptTest extends BrowserTestBase {
 
     // Reset the static cache to ensure we have the most current setting.
     $schema_version = drupal_get_installed_schema_version('update_script_test', TRUE);
-    $this->assertEqual($schema_version, 8001, 'update_script_test schema version is 8001 after updating.');
+    $this->assertEqual(8001, $schema_version, 'update_script_test schema version is 8001 after updating.');
 
     // Set the installed schema version to one less than the current update.
     drupal_set_installed_schema_version('update_script_test', $schema_version - 1);
     $schema_version = drupal_get_installed_schema_version('update_script_test', TRUE);
-    $this->assertEqual($schema_version, 8000, 'update_script_test schema version overridden to 8000.');
+    $this->assertEqual(8000, $schema_version, 'update_script_test schema version overridden to 8000.');
 
     // Create admin user.
     $admin_user = $this->drupalCreateUser([
@@ -637,8 +636,8 @@ class UpdateScriptTest extends BrowserTestBase {
     // Visit status report page and ensure, that link to update.php has no path prefix set.
     $this->drupalGet('en/admin/reports/status', ['external' => TRUE]);
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertLinkByHref('/update.php');
-    $this->assertNoLinkByHref('en/update.php');
+    $this->assertSession()->linkByHrefExists('/update.php');
+    $this->assertSession()->linkByHrefNotExists('en/update.php');
 
     // Click through update.php with 'access administration pages' and
     // 'access site reports' permissions.
@@ -659,17 +658,26 @@ class UpdateScriptTest extends BrowserTestBase {
    * Tests maintenance mode link on update.php.
    */
   public function testMaintenanceModeLink() {
-    $admin_user = $this->drupalCreateUser([
+    $full_admin_user = $this->drupalCreateUser([
       'administer software updates',
       'access administration pages',
       'administer site configuration',
     ]);
-    $this->drupalLogin($admin_user);
+    $this->drupalLogin($full_admin_user);
     $this->drupalGet($this->updateUrl, ['external' => TRUE]);
     $this->assertSession()->statusCodeEquals(200);
     $this->clickLink('maintenance mode');
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertEquals('Maintenance mode', $this->cssSelect('main h1')[0]->getText());
+    $this->assertSession()->elementContains('css', 'main h1', 'Maintenance mode');
+
+    // Now login as a user with only 'administer software updates' (but not
+    // 'administer site configuration') permission and try again.
+    $this->drupalLogin($this->updateUser);
+    $this->drupalGet($this->updateUrl, ['external' => TRUE]);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->clickLink('maintenance mode');
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->elementContains('css', 'main h1', 'Maintenance mode');
   }
 
   /**
@@ -677,12 +685,12 @@ class UpdateScriptTest extends BrowserTestBase {
    */
   protected function runUpdates($maintenance_mode) {
     $schema_version = drupal_get_installed_schema_version('update_script_test');
-    $this->assertEqual($schema_version, 8001, 'update_script_test is initially installed with schema version 8001.');
+    $this->assertEqual(8001, $schema_version, 'update_script_test is initially installed with schema version 8001.');
 
     // Set the installed schema version to one less than the current update.
     drupal_set_installed_schema_version('update_script_test', $schema_version - 1);
     $schema_version = drupal_get_installed_schema_version('update_script_test', TRUE);
-    $this->assertEqual($schema_version, 8000, 'update_script_test schema version overridden to 8000.');
+    $this->assertEqual(8000, $schema_version, 'update_script_test schema version overridden to 8000.');
 
     // Click through update.php with 'administer software updates' permission.
     $this->drupalLogin($this->updateUser);

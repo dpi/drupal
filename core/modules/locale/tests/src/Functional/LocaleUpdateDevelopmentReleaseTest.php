@@ -28,15 +28,13 @@ class LocaleUpdateDevelopmentReleaseTest extends BrowserTestBase {
       'translate interface',
     ]);
     $this->drupalLogin($admin_user);
-    $this->drupalPostForm('admin/config/regional/language/add', ['predefined_langcode' => 'hu'], t('Add language'));
+    $this->drupalPostForm('admin/config/regional/language/add', ['predefined_langcode' => 'hu'], 'Add language');
   }
 
   public function testLocaleUpdateDevelopmentRelease() {
     $projects = locale_translation_build_projects();
-    $this->verbose($projects['drupal']->info['version']);
-    $this->assertEqual($projects['drupal']->info['version'], '8.0.x', 'The branch of the core dev release.');
-    $this->verbose($projects['contrib']->info['version']);
-    $this->assertEqual($projects['contrib']->info['version'], '12.x-10.x', 'The branch of the contrib module dev release.');
+    $this->assertEqual('8.0.x', $projects['drupal']->info['version'], 'The branch of the core dev release.');
+    $this->assertEqual('12.x-10.x', $projects['contrib']->info['version'], 'The branch of the contrib module dev release.');
   }
 
 }

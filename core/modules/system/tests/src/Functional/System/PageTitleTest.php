@@ -60,13 +60,14 @@ class PageTitleTest extends BrowserTestBase {
       'body[0][value]' => '!SimpleTest! test body' . $this->randomMachineName(200),
     ];
     // Create the node with HTML in the title.
-    $this->drupalPostForm('node/add/page', $edit, t('Save'));
+    $this->drupalPostForm('node/add/page', $edit, 'Save');
 
+    // Make sure tags in the node title are converted.
     $node = $this->drupalGetNodeByTitle($edit['title[0][value]']);
     $this->assertNotNull($node, 'Node created and found in database');
-    $this->assertText(Html::escape($edit['title[0][value]']), 'Check to make sure tags in the node title are converted.');
+    $this->assertText(Html::escape($edit['title[0][value]']));
     $this->drupalGet("node/" . $node->id());
-    $this->assertText(Html::escape($edit['title[0][value]']), 'Check to make sure tags in the node title are converted.');
+    $this->assertText(Html::escape($edit['title[0][value]']));
   }
 
   /**
@@ -85,7 +86,7 @@ class PageTitleTest extends BrowserTestBase {
       'site_name'    => $title,
       'site_slogan'  => $slogan,
     ];
-    $this->drupalPostForm('admin/config/system/site-information', $edit, t('Save configuration'));
+    $this->drupalPostForm('admin/config/system/site-information', $edit, 'Save configuration');
 
     // Place branding block with site name and slogan into header region.
     $this->drupalPlaceBlock('system_branding_block', ['region' => 'header']);
@@ -93,15 +94,18 @@ class PageTitleTest extends BrowserTestBase {
     // Load frontpage.
     $this->drupalGet('');
 
-    // Test the title.
-    $this->assertNoRaw($title, 'Check for the lack of the unfiltered version of the title.');
+    // Test the title, checking for the lack of the unfiltered version of the
+    // title.
+    $this->assertNoRaw($title);
     // Add </title> to make sure we're checking the title tag, rather than the
     // first 'heading' on the page.
-    $this->assertRaw($title_filtered . '</title>', 'Check for the filtered version of the title in a <title> tag.');
+    $this->assertRaw($title_filtered . '</title>');
 
     // Test the slogan.
-    $this->assertNoRaw($slogan, 'Check for the unfiltered version of the slogan.');
-    $this->assertRaw($slogan_filtered, 'Check for the filtered version of the slogan.');
+    // Check the unfiltered version of the slogan is missing.
+    $this->assertNoRaw($slogan);
+    // Check for the filtered version of the slogan.
+    $this->assertRaw($slogan_filtered);
   }
 
   /**

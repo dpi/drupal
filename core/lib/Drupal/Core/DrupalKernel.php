@@ -4,7 +4,7 @@ namespace Drupal\Core;
 
 use Composer\Autoload\ClassLoader;
 use Drupal\Component\Assertion\Handle;
-use Symfony\Component\EventDispatcher\Event;
+use Drupal\Component\EventDispatcher\Event;
 use Drupal\Component\FileCache\FileCacheFactory;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Cache\DatabaseBackend;
@@ -574,7 +574,7 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
     // Sanitize the request.
     $request = RequestSanitizer::sanitize(
       $request,
-      (array) Settings::get(RequestSanitizer::SANITIZE_WHITELIST, []),
+      (array) Settings::get(RequestSanitizer::SANITIZE_INPUT_SAFE_KEYS, []),
       (bool) Settings::get(RequestSanitizer::SANITIZE_LOG, FALSE)
     );
 
@@ -984,9 +984,6 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
       $app_root = static::guessApplicationRoot();
     }
 
-    // Include our bootstrap file.
-    require_once $app_root . '/core/includes/bootstrap.inc';
-
     // Enforce E_STRICT, but allow users to set levels not part of E_STRICT.
     error_reporting(E_STRICT | E_ALL);
 
@@ -1354,7 +1351,7 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
   }
 
   /**
-   * Gets a http kernel from the container
+   * Gets a http kernel from the container.
    *
    * @return \Symfony\Component\HttpKernel\HttpKernelInterface
    */

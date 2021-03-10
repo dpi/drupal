@@ -652,6 +652,8 @@ class CKEditorIntegrationTest extends WebDriverTestBase {
     $this->waitForEditor();
     $this->assignNameToCkeditorIframe();
     $this->getSession()->switchToIFrame('ckeditor');
+    // Wait for the media preview to load.
+    $this->assertNotEmpty($assert_session->waitForElementVisible('css', 'drupal-media img'));
     // Test that by default no alt attribute is present on the drupal-media
     // element.
     $this->pressEditorButton('source');
@@ -1106,7 +1108,7 @@ class CKEditorIntegrationTest extends WebDriverTestBase {
     $this->assignNameToCkeditorIframe();
     $this->getSession()->switchToIFrame('ckeditor');
     // Wait for preview to load.
-    $this->assertNotEmpty($img = $assert_session->waitForElement('css', 'drupal-media img'));
+    $this->assertNotEmpty($assert_session->waitForElement('css', 'drupal-media img'));
     // Assert the drupal-media element starts without a data-align attribute.
     $drupal_media = $assert_session->elementExists('css', 'drupal-media');
     $this->assertFalse($drupal_media->hasAttribute('data-align'));
@@ -1122,7 +1124,7 @@ class CKEditorIntegrationTest extends WebDriverTestBase {
     foreach ($alignments as $alignment) {
       $this->fillFieldInMetadataDialogAndSubmit('attributes[data-align]', $alignment);
       // Wait for preview to load.
-      $this->assertNotEmpty($img = $assert_session->waitForElement('css', 'drupal-media img'));
+      $this->assertNotEmpty($assert_session->waitForElement('css', 'drupal-media img'));
       // Now verify the result. Assert the first element within the
       // <drupal-media> element has the alignment class.
       $selector = sprintf('drupal-media[data-align="%s"] .caption-drupal-media.align-%s', $alignment, $alignment);

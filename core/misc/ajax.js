@@ -246,6 +246,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         }
       },
       dataType: 'json',
+      jsonp: false,
       type: 'POST'
     };
 
@@ -586,7 +587,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       }
     },
     alert: function alert(ajax, response, status) {
-      window.alert(response.text, response.title);
+      window.alert(response.text);
     },
     announce: function announce(ajax, response) {
       if (response.priority) {

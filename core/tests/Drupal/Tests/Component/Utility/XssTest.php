@@ -7,6 +7,10 @@ use Drupal\Component\Utility\UrlHelper;
 use Drupal\Component\Utility\Xss;
 use PHPUnit\Framework\TestCase;
 
+// cspell:ignore ascript barbaz ckers cript CVEs dynsrc fooÿñ metacharacters
+// cspell:ignore msgbox ncript nfocus nmedi nosuchscheme nosuchtag onmediaerror
+// cspell:ignore scrscriptipt tascript vbscript
+
 /**
  * XSS Filtering tests.
  *
@@ -480,7 +484,7 @@ class XssTest extends TestCase {
    */
   public function testQuestionSign() {
     $value = Xss::filter('<?xml:namespace ns="urn:schemas-microsoft-com:time">');
-    $this->assertTrue(stripos($value, '<?xml') === FALSE, 'HTML tag stripping evasion -- starting with a question sign (processing instructions).');
+    $this->assertStringNotContainsStringIgnoringCase('<?xml', $value, 'HTML tag stripping evasion -- starting with a question sign (processing instructions).');
   }
 
   /**

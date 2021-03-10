@@ -54,7 +54,7 @@ abstract class FieldKernelTestBase extends KernelTestBase {
 
     $this->installEntitySchema('entity_test');
     $this->installEntitySchema('user');
-    $this->installSchema('system', ['sequences', 'key_value']);
+    $this->installSchema('system', ['sequences']);
 
     // Set default storage backend and configure the theme system.
     $this->installConfig(['field', 'system']);
@@ -208,7 +208,7 @@ abstract class FieldKernelTestBase extends KernelTestBase {
     $values = $field->getValue();
     $this->assertCount($expected_values_count, $values, 'Expected number of values were saved.');
     foreach ($expected_values as $key => $value) {
-      $this->assertEqual($values[$key][$column], $value, new FormattableMarkup('Value @value was saved correctly.', ['@value' => $value]));
+      $this->assertEqual($value, $values[$key][$column], new FormattableMarkup('Value @value was saved correctly.', ['@value' => $value]));
     }
   }
 

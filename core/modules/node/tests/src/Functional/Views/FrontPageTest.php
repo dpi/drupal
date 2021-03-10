@@ -77,13 +77,13 @@ class FrontPageTest extends ViewTestBase {
         'user',
       ],
     ];
-    $this->assertIdentical($expected, $view->getDependencies());
+    $this->assertSame($expected, $view->getDependencies());
 
     $view->setDisplay('page_1');
     $this->executeView($view);
     $view->preview();
 
-    $this->assertEqual($view->getTitle(), new FormattableMarkup('Welcome to @site_name', ['@site_name' => $site_name]), 'The welcome title is used for the empty view.');
+    $this->assertEqual(new FormattableMarkup('Welcome to @site_name', ['@site_name' => $site_name]), $view->getTitle(), 'The welcome title is used for the empty view.');
     $view->destroy();
 
     // Create some nodes on the frontpage view. Add more than 10 nodes in order
@@ -187,7 +187,7 @@ class FrontPageTest extends ViewTestBase {
     $this->drupalGet('node');
     $this->assertSession()->statusCodeEquals(200);
     // Check that the frontpage view was rendered.
-    $this->assertPattern('/class=".+view-frontpage/', 'Frontpage view was rendered');
+    $this->assertSession()->responseMatches('/class=".+view-frontpage/');
   }
 
   /**

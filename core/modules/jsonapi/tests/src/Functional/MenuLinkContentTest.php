@@ -175,13 +175,6 @@ class MenuLinkContentTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  public function testRelated() {
-    $this->markTestSkipped('Remove this in https://www.drupal.org/project/jsonapi/issues/2940339');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function testCollectionFilterAccess() {
     $this->doTestCollectionFilterAccessBasedOnPermissions('title', 'administer menu');
   }

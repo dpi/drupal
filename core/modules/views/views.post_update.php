@@ -6,7 +6,6 @@
  */
 
 use Drupal\Core\Config\Entity\ConfigEntityUpdater;
-use Drupal\views\ViewEntityInterface;
 use Drupal\views\ViewsConfigUpdater;
 
 /**
@@ -54,12 +53,18 @@ function views_post_update_configuration_entity_relationships() {
 }
 
 /**
- * Update the in_operator filter plugins values.
+ * Rename the setting for showing the default display to 'default_display'.
  */
-function views_post_update_in_operator_values(?array &$sandbox = NULL): void {
-  /** @var \Drupal\views\ViewsConfigUpdater $view_config_updater */
-  $view_config_updater = \Drupal::classResolver(ViewsConfigUpdater::class);
-  \Drupal::classResolver(ConfigEntityUpdater::class)->update($sandbox, 'view', function (ViewEntityInterface $view) use ($view_config_updater): bool {
-    return $view_config_updater->needsInOperatorFilterValuesUpdate($view);
-  });
+function views_post_update_rename_default_display_setting() {
+  $config = \Drupal::configFactory()->getEditable('views.settings');
+  $config->set('ui.show.default_display', $config->get('ui.show.master_display'));
+  $config->clear('ui.show.master_display');
+  $config->save();
+}
+
+/**
+ * Clear caches due to removal of sorting for global custom text field.
+ */
+function views_post_update_remove_sorting_global_text_field() {
+  // Empty post-update hook.
 }

@@ -166,7 +166,7 @@ class FileItem extends EntityReferenceItem {
       '#type' => 'textfield',
       '#title' => t('Allowed file extensions'),
       '#default_value' => $extensions,
-      '#description' => t('Separate extensions with a space or comma and do not include the leading dot.'),
+      '#description' => $this->t("Separate extensions with a comma or space. Each extension can contain alphanumeric characters, '.', and '_', and should start and end with an alphanumeric character."),
       '#element_validate' => [[static::class, 'validateExtensions']],
       '#weight' => 1,
       '#maxlength' => 256,
@@ -197,7 +197,7 @@ class FileItem extends EntityReferenceItem {
   }
 
   /**
-   * Form API callback
+   * Form API callback.
    *
    * Removes slashes from the beginning and end of the destination value and
    * ensures that the file directory path is not included at the beginning of the
@@ -225,13 +225,24 @@ class FileItem extends EntityReferenceItem {
   public static function validateExtensions($element, FormStateInterface $form_state) {
     if (!empty($element['#value'])) {
       $extensions = preg_replace('/([, ]+\.?)/', ' ', trim(strtolower($element['#value'])));
-      $extensions = array_filter(explode(' ', $extensions));
-      $extensions = implode(' ', array_unique($extensions));
-      if (!preg_match('/^([a-z0-9]+([.][a-z0-9])* ?)+$/', $extensions)) {
-        $form_state->setError($element, t('The list of allowed extensions is not valid, be sure to exclude leading dots and to separate extensions with a comma or space.'));
+      $extension_array = array_unique(array_filter(explode(' ', $extensions)));
+      $extensions = implode(' ', $extension_array);
+      if (!preg_match('/^([a-z0-9]+([._][a-z0-9])* ?)+$/', $extensions)) {
+        $form_state->setError($element, t("The list of allowed extensions is not valid. Allowed characters are a-z, 0-9, '.', and '_'. The first and last characters cannot be '.' or '_', and these two characters cannot appear next to each other. Separate extensions with a comma or space."));
       }
       else {
         $form_state->setValueForElement($element, $extensions);
+      }
+
+      // If insecure uploads are not allowed and txt is not in the list of
+      // allowed extensions, ensure that no insecure extensions are allowed.
+      if (!in_array('txt', $extension_array, TRUE) && !\Drupal::config('system.file')->get('allow_insecure_uploads')) {
+        foreach ($extension_array as $extension) {
+          if (preg_match(FileSystemInterface::INSECURE_EXTENSION_REGEX, 'test.' . $extension)) {
+            $form_state->setError($element, t('Add %txt_extension to the list of allowed extensions to securely upload files with a %extension extension. The %txt_extension extension will then be added automatically.', ['%extension' => $extension, '%txt_extension' => 'txt']));
+            break;
+          }
+        }
       }
     }
   }
@@ -240,13 +251,13 @@ class FileItem extends EntityReferenceItem {
    * Form API callback.
    *
    * Ensures that a size has been entered and that it can be parsed by
-   * \Drupal\Component\Utility\Bytes::toInt().
+   * \Drupal\Component\Utility\Bytes::toNumber().
    *
    * This function is assigned as an #element_validate callback in
    * fieldSettingsForm().
    */
   public static function validateMaxFilesize($element, FormStateInterface $form_state) {
-    if (!empty($element['#value']) && !is_numeric(Bytes::toInt($element['#value']))) {
+    if (!empty($element['#value']) && !is_numeric(Bytes::toNumber($element['#value']))) {
       $form_state->setError($element, t('The "@name" option must contain a valid value. You may either leave the text field empty or enter a string like "512" (bytes), "80 KB" (kilobytes) or "50 MB" (megabytes).', ['@name' => $element['title']]));
     }
   }
@@ -302,9 +313,9 @@ class FileItem extends EntityReferenceItem {
     $settings = $this->getSettings();
 
     // Cap the upload size according to the PHP limit.
-    $max_filesize = Bytes::toInt(Environment::getUploadMaxSize());
+    $max_filesize = Bytes::toNumber(Environment::getUploadMaxSize());
     if (!empty($settings['max_filesize'])) {
-      $max_filesize = min($max_filesize, Bytes::toInt($settings['max_filesize']));
+      $max_filesize = min($max_filesize, Bytes::toNumber($settings['max_filesize']));
     }
 
     // There is always a file size limit due to the PHP server limit.

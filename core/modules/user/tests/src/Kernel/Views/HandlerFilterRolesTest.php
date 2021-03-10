@@ -54,7 +54,7 @@ class HandlerFilterRolesTest extends UserKernelTestBase {
       'table' => 'user__roles',
       'field' => 'roles_target_id',
       'value' => [
-        'test_user_role',
+        'test_user_role' => 'test_user_role',
       ],
       'operator' => 'empty',
       'plugin_id' => 'user_roles',
@@ -70,7 +70,7 @@ class HandlerFilterRolesTest extends UserKernelTestBase {
       'table' => 'user__roles',
       'field' => 'roles_target_id',
       'value' => [
-        'test_user_role',
+        'test_user_role' => 'test_user_role',
       ],
       'operator' => 'not empty',
       'plugin_id' => 'user_roles',
@@ -81,7 +81,7 @@ class HandlerFilterRolesTest extends UserKernelTestBase {
     $view = Views::getView('test_user_name');
     $view->initDisplay();
     $view->initHandlers();
-    $this->assertEqual(array_keys($view->filter['roles_target_id']->getValueOptions()), ['test_user_role']);
+    $this->assertEqual(['test_user_role'], array_keys($view->filter['roles_target_id']->getValueOptions()));
 
     $view = View::load('test_user_name');
     $display = &$view->getDisplay('default');

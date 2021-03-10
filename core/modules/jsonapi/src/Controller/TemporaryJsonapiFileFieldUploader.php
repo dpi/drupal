@@ -8,6 +8,7 @@ use Drupal\Component\Utility\Environment;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Plugin\DataType\EntityAdapter;
 use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\File\Event\FileUploadSanitizeNameEvent;
 use Drupal\Core\File\Exception\FileException;
 use Drupal\Core\Validation\DrupalTranslator;
 use Drupal\file\FileInterface;
@@ -21,11 +22,12 @@ use Drupal\Component\Render\PlainTextOutput;
 use Drupal\file\Entity\File;
 use Drupal\file\Plugin\Field\FieldType\FileFieldItemList;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
 use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Reads data from an upload stream and creates a corresponding file entity.
@@ -73,7 +75,7 @@ class TemporaryJsonapiFileFieldUploader {
   /**
    * The MIME type guesser.
    *
-   * @var \Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface
+   * @var \Symfony\Component\Mime\MimeTypeGuesserInterface
    */
   protected $mimeTypeGuesser;
 
@@ -99,13 +101,20 @@ class TemporaryJsonapiFileFieldUploader {
   protected $systemFileConfig;
 
   /**
+   * The event dispatcher.
+   *
+   * @var \Symfony\Contracts\EventDispatcher\EventDispatcherInterface
+   */
+  protected $eventDispatcher;
+
+  /**
    * Constructs a FileUploadResource instance.
    *
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger instance.
    * @param \Drupal\Core\File\FileSystemInterface $file_system
    *   The file system service.
-   * @param \Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface $mime_type_guesser
+   * @param \Symfony\Component\Mime\MimeTypeGuesserInterface $mime_type_guesser
    *   The MIME type guesser.
    * @param \Drupal\Core\Utility\Token $token
    *   The token replacement instance.
@@ -114,13 +123,17 @@ class TemporaryJsonapiFileFieldUploader {
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
    */
-  public function __construct(LoggerInterface $logger, FileSystemInterface $file_system, MimeTypeGuesserInterface $mime_type_guesser, Token $token, LockBackendInterface $lock, ConfigFactoryInterface $config_factory) {
+  public function __construct(LoggerInterface $logger, FileSystemInterface $file_system, $mime_type_guesser, Token $token, LockBackendInterface $lock, ConfigFactoryInterface $config_factory, EventDispatcherInterface $event_dispatcher = NULL) {
     $this->logger = $logger;
     $this->fileSystem = $file_system;
     $this->mimeTypeGuesser = $mime_type_guesser;
     $this->token = $token;
     $this->lock = $lock;
     $this->systemFileConfig = $config_factory->get('system.file');
+    if (!$event_dispatcher) {
+      $event_dispatcher = \Drupal::service('event_dispatcher');
+    }
+    $this->eventDispatcher = $event_dispatcher;
   }
 
   /**
@@ -173,7 +186,13 @@ class TemporaryJsonapiFileFieldUploader {
     $file = File::create([]);
     $file->setOwnerId($owner->id());
     $file->setFilename($prepared_filename);
-    $file->setMimeType($this->mimeTypeGuesser->guess($prepared_filename));
+    if ($this->mimeTypeGuesser instanceof MimeTypeGuesserInterface) {
+      $file->setMimeType($this->mimeTypeGuesser->guessMimeType($prepared_filename));
+    }
+    else {
+      @trigger_error('\Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface is deprecated in drupal:9.1.0 and is removed from drupal:10.0.0. Implement \Symfony\Component\Mime\MimeTypeGuesserInterface instead. See https://www.drupal.org/node/3133341', E_USER_DEPRECATED);
+      $file->setMimeType($this->mimeTypeGuesser->guess($prepared_filename));
+    }
     $file->setFileUri($file_uri);
     // Set the size. This is done in File::preSave() but we validate the file
     // before it is saved.
@@ -380,30 +399,12 @@ class TemporaryJsonapiFileFieldUploader {
    *   The prepared/munged filename.
    */
   protected function prepareFilename($filename, array &$validators) {
-    if (!empty($validators['file_validate_extensions'][0])) {
-      // If there is a file_validate_extensions validator and a list of
-      // valid extensions, munge the filename to protect against possible
-      // malicious extension hiding within an unknown file type. For example,
-      // "filename.html.foo".
-      $filename = file_munge_filename($filename, $validators['file_validate_extensions'][0]);
-    }
-
-    // Rename potentially executable files, to help prevent exploits (i.e. will
-    // rename filename.php.foo and filename.php to filename.php.foo.txt and
-    // filename.php.txt, respectively). Don't rename if 'allow_insecure_uploads'
-    // evaluates to TRUE.
-    if (!$this->systemFileConfig->get('allow_insecure_uploads') && preg_match(FILE_INSECURE_EXTENSION_REGEX, $filename) && (substr($filename, -4) != '.txt')) {
-      // The destination filename will also later be used to create the URI.
-      $filename .= '.txt';
-
-      // The .txt extension may not be in the allowed list of extensions. We
-      // have to add it here or else the file upload will fail.
-      if (!empty($validators['file_validate_extensions'][0])) {
-        $validators['file_validate_extensions'][0] .= ' txt';
-      }
-    }
-
-    return $filename;
+    // The actual extension validation occurs in
+    // \Drupal\jsonapi\Controller\TemporaryJsonapiFileFieldUploader::validate().
+    $extensions = $validators['file_validate_extensions'][0] ?? '';
+    $event = new FileUploadSanitizeNameEvent($filename, $extensions);
+    $this->eventDispatcher->dispatch($event);
+    return $event->getFilename();
   }
 
   /**
@@ -446,9 +447,9 @@ class TemporaryJsonapiFileFieldUploader {
     $settings = $field_definition->getSettings();
 
     // Cap the upload size according to the PHP limit.
-    $max_filesize = Bytes::toInt(Environment::getUploadMaxSize());
+    $max_filesize = Bytes::toNumber(Environment::getUploadMaxSize());
     if (!empty($settings['max_filesize'])) {
-      $max_filesize = min($max_filesize, Bytes::toInt($settings['max_filesize']));
+      $max_filesize = min($max_filesize, Bytes::toNumber($settings['max_filesize']));
     }
 
     // There is always a file size limit due to the PHP server limit.

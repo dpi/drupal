@@ -36,7 +36,7 @@ class CommentTranslationUITest extends ContentTranslationUITestBase {
   protected $adminUser;
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
   protected $defaultCacheContexts = [
     'languages:language_interface',
@@ -189,8 +189,8 @@ class CommentTranslationUITest extends ContentTranslationUITestBase {
     $entity = $storage->load($this->entityId);
     foreach ($this->langcodes as $langcode) {
       $metadata = $this->manager->getTranslationMetadata($entity->getTranslation($langcode));
-      $this->assertEqual($metadata->getAuthor()->id(), $values[$langcode]['uid'], 'Translation author correctly stored.');
-      $this->assertEqual($metadata->getCreatedTime(), $values[$langcode]['created'], 'Translation date correctly stored.');
+      $this->assertEqual($values[$langcode]['uid'], $metadata->getAuthor()->id(), 'Translation author correctly stored.');
+      $this->assertEqual($values[$langcode]['created'], $metadata->getCreatedTime(), 'Translation date correctly stored.');
     }
   }
 
@@ -207,8 +207,8 @@ class CommentTranslationUITest extends ContentTranslationUITestBase {
     // Verify translation links.
     $this->drupalGet('admin/content/comment');
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertLinkByHref('comment/' . $cid_translatable . '/translations');
-    $this->assertNoLinkByHref('comment/' . $cid_untranslatable . '/translations');
+    $this->assertSession()->linkByHrefExists('comment/' . $cid_translatable . '/translations');
+    $this->assertSession()->linkByHrefNotExists('comment/' . $cid_untranslatable . '/translations');
   }
 
   /**

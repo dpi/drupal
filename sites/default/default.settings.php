@@ -230,9 +230,9 @@ $databases = [];
  * Sample Database configuration format for a driver in a contributed module:
  * @code
  *   $databases['default']['default'] = [
- *     'driver' => 'mydriver',
- *     'namespace' => 'Drupal\mymodule\Driver\Database\mydriver',
- *     'autoload' => 'modules/mymodule/src/Driver/Database/mydriver/',
+ *     'driver' => 'my_driver',
+ *     'namespace' => 'Drupal\my_module\Driver\Database\my_driver',
+ *     'autoload' => 'modules/my_module/src/Driver/Database/my_driver/',
  *     'database' => 'databasename',
  *     'username' => 'sqlusername',
  *     'password' => 'sqlpassword',
@@ -308,6 +308,20 @@ $settings['hash_salt'] = '';
 $settings['update_free_access'] = FALSE;
 
 /**
+ * Fallback to HTTP for Update Manager.
+ *
+ * If your Drupal site fails to connect to updates.drupal.org using HTTPS to
+ * fetch Drupal core, module and theme update status, you may uncomment this
+ * setting and set it to TRUE to allow an insecure fallback to HTTP. Note that
+ * doing so will open your site up to a potential man-in-the-middle attack. You
+ * should instead attempt to resolve the issues before enabling this option.
+ * @see https://www.drupal.org/docs/system-requirements/php-requirements#openssl
+ * @see https://en.wikipedia.org/wiki/Man-in-the-middle_attack
+ * @see \Drupal\update\UpdateFetcher
+ */
+# $settings['update_fetch_with_http_fallback'] = TRUE;
+
+/**
  * External access proxy settings:
  *
  * If your site must access the Internet via a web proxy then you can enter the
@@ -371,17 +385,20 @@ $settings['update_free_access'] = FALSE;
  * Sets which headers to trust from your reverse proxy.
  *
  * Common values are:
- * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL
+ * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR
+ * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST
+ * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT
+ * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO
  * - \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED
  *
  * Note the default value of
  * @code
- * \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL | \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED
+ * \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO | \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED
  * @endcode
  * is not secure by default. The value should be set to only the specific
  * headers the reverse proxy uses. For example:
  * @code
- * \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL
+ * \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO
  * @endcode
  * This would trust the following headers:
  * - X_FORWARDED_FOR
@@ -389,11 +406,14 @@ $settings['update_free_access'] = FALSE;
  * - X_FORWARDED_PROTO
  * - X_FORWARDED_PORT
  *
- * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL
+ * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR
+ * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST
+ * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT
+ * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO
  * @see \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED
  * @see \Symfony\Component\HttpFoundation\Request::setTrustedProxies
  */
-# $settings['reverse_proxy_trusted_headers'] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL | \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED;
+# $settings['reverse_proxy_trusted_headers'] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO | \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED;
 
 
 /**
@@ -751,10 +771,13 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
 /**
  * Load local development override configuration, if available.
  *
- * Use settings.local.php to override variables on secondary (staging,
- * development, etc) installations of this site. Typically used to disable
- * caching, JavaScript/CSS compression, re-routing of outgoing emails, and
- * other things that should not happen on development and testing sites.
+ * Create a settings.local.php file to override variables on secondary (staging,
+ * development, etc.) installations of this site.
+ *
+ * Typical uses of settings.local.php include:
+ * - Disabling caching.
+ * - Disabling JavaScript/CSS compression.
+ * - Rerouting outgoing emails.
  *
  * Keep this code block at the end of this file to take full effect.
  */

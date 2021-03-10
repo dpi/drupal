@@ -542,7 +542,7 @@ DOCBLOCK;
 
         $result = $parser->parse($docblock, $context);
 
-        $this->assertTrue(sizeof($result) === 1);
+        $this->assertCount(1, $result);
         $this->assertInstanceOf('Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationWithVarType', $result[0]);
         $this->assertNotNull($result[0]->$attribute);
     }
@@ -596,7 +596,7 @@ DOCBLOCK;
 
         $result = $parser->parse($docblock, $context);
 
-        $this->assertTrue(sizeof($result) === 1);
+        $this->assertCount(1, $result);
         $this->assertInstanceOf('Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationWithAttributes', $result[0]);
         $getter = "get".ucfirst($attribute);
         $this->assertNotNull($result[0]->$getter());
@@ -649,7 +649,7 @@ DOCBLOCK;
         $docblock   = '@Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationWithRequiredAttributes("Some Value", annot = @Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationTargetAnnotation)';
         $result     = $parser->parse($docblock);
 
-        $this->assertTrue(sizeof($result) === 1);
+        $this->assertCount(1, $result);
         $this->assertInstanceOf('Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationWithRequiredAttributes', $result[0]);
         $this->assertEquals("Some Value",$result[0]->getValue());
         $this->assertInstanceOf('Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationTargetAnnotation', $result[0]->getAnnot());
@@ -683,7 +683,7 @@ DOCBLOCK;
         $docblock   = '@Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationWithRequiredAttributesWithoutContructor("Some Value", annot = @Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationTargetAnnotation)';
         $result     = $parser->parse($docblock);
 
-        $this->assertTrue(sizeof($result) === 1);
+        $this->assertCount(1, $result);
         $this->assertInstanceOf('Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationWithRequiredAttributesWithoutContructor', $result[0]);
         $this->assertEquals("Some Value", $result[0]->value);
         $this->assertInstanceOf('Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationTargetAnnotation', $result[0]->annot);
@@ -710,7 +710,7 @@ DOCBLOCK;
     public function testAnnotationEnumeratorException()
     {
         $this->expectException('\Doctrine\Common\Annotations\AnnotationException');
-        $this->expectExceptionMessage('Attribute "value" of @Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationEnum declared on property SomeClassName::invalidProperty. accept only [ONE, TWO, THREE], but got FOUR.');
+        $this->expectExceptionMessage('Attribute "value" of @Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationEnum declared on property SomeClassName::invalidProperty. accepts only [ONE, TWO, THREE], but got FOUR.');
 
         $parser     = $this->createTestParser();
         $context    = 'property SomeClassName::invalidProperty.';
@@ -724,7 +724,7 @@ DOCBLOCK;
     public function testAnnotationEnumeratorLiteralException()
     {
         $this->expectException('\Doctrine\Common\Annotations\AnnotationException');
-        $this->expectExceptionMessage('Attribute "value" of @Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationEnumLiteral declared on property SomeClassName::invalidProperty. accept only [AnnotationEnumLiteral::ONE, AnnotationEnumLiteral::TWO, AnnotationEnumLiteral::THREE], but got 4.');
+        $this->expectExceptionMessage('Attribute "value" of @Drupal\Tests\Component\Annotation\Doctrine\Fixtures\AnnotationEnumLiteral declared on property SomeClassName::invalidProperty. accepts only [AnnotationEnumLiteral::ONE, AnnotationEnumLiteral::TWO, AnnotationEnumLiteral::THREE], but got 4.');
 
         $parser     = $this->createTestParser();
         $context    = 'property SomeClassName::invalidProperty.';

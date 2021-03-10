@@ -3,6 +3,7 @@
 namespace Drupal\KernelTests\Core\TempStore;
 
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactory;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\Core\TempStore\SharedTempStoreFactory;
 use Drupal\Core\Lock\DatabaseLockBackend;
@@ -17,24 +18,6 @@ use Drupal\Core\Database\Database;
 class TempStoreDatabaseTest extends KernelTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  protected static $modules = ['system'];
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function setUp(): void {
-    parent::setUp();
-
-    // Install system tables to test the key/value storage without installing a
-    // full Drupal environment.
-    $this->installSchema('system', ['key_value_expire']);
-  }
-
-  /**
    * Tests the SharedTempStore API.
    */
   public function testSharedTempStore() {
@@ -46,7 +29,14 @@ class TempStoreDatabaseTest extends KernelTestBase {
 
     // Create a key/value collection.
     $database = Database::getConnection();
-    $factory = new SharedTempStoreFactory(new KeyValueExpirableFactory(\Drupal::getContainer()), new DatabaseLockBackend($database), $this->container->get('request_stack'));
+    // Mock the current user service so that isAnonymous returns FALSE.
+    $current_user = $this->prophesize(AccountProxyInterface::class);
+    $factory = new SharedTempStoreFactory(
+      new KeyValueExpirableFactory(\Drupal::getContainer()),
+      new DatabaseLockBackend($database),
+      $this->container->get('request_stack'),
+      $current_user->reveal()
+    );
     $collection = $this->randomMachineName();
 
     // Create two mock users.

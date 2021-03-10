@@ -5,7 +5,6 @@ namespace Drupal\search;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
-use Drupal\Core\Database\Query\Condition;
 use Drupal\search\Exception\SearchIndexException;
 
 /**
@@ -211,7 +210,7 @@ class SearchIndex implements SearchIndexInterface {
             'type' => $type,
           ])
           ->fields(['score' => $score])
-          ->expression('score', 'score + :score', [':score' => $score])
+          ->expression('score', '[score] + :score', [':score' => $score])
           ->execute();
         $current_words[$word] = TRUE;
       }
@@ -300,7 +299,7 @@ class SearchIndex implements SearchIndexInterface {
       $words = array_keys($words);
       foreach ($words as $word) {
         // Get total count.
-        $total = $this->replica->query("SELECT SUM(score) FROM {search_index} WHERE word = :word", [':word' => $word])
+        $total = $this->replica->query("SELECT SUM([score]) FROM {search_index} WHERE [word] = :word", [':word' => $word])
           ->fetchField();
         // Apply Zipf's law to equalize the probability distribution.
         $total = log10(1 + 1 / (max(1, $total)));
@@ -312,8 +311,8 @@ class SearchIndex implements SearchIndexInterface {
       // Find words that were deleted from search_index, but are still in
       // search_total. We use a LEFT JOIN between the two tables and keep only
       // the rows which fail to join.
-      $result = $this->replica->query("SELECT t.word AS realword, i.word FROM {search_total} t LEFT JOIN {search_index} i ON t.word = i.word WHERE i.word IS NULL");
-      $or = new Condition('OR');
+      $result = $this->replica->query("SELECT [t].[word] AS [realword], [i].[word] FROM {search_total} [t] LEFT JOIN {search_index} [i] ON [t].[word] = [i].[word] WHERE [i].[word] IS NULL");
+      $or = $this->replica->condition('OR');
       foreach ($result as $word) {
         $or->condition('word', $word->realword);
       }
