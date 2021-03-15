@@ -4,4 +4,4 @@ description: 'Module for testing routes.'
 package: Testing
 version: VERSION
 dependencies:
-  - node
+  - drupal:node
