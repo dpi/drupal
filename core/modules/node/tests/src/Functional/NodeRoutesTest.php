@@ -21,7 +21,7 @@ class NodeRoutesTest extends NodeTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'block',
     'content_translation',
     'language',
