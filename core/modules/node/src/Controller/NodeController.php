@@ -138,7 +138,10 @@ class NodeController extends ControllerBase implements ContainerInjectionInterfa
    *   The page title.
    */
   public function revisionPageTitle(NodeInterface $node_revision) {
-    return $this->t('Revision of %title from %date', ['%title' => $node_revision->label(), '%date' => $this->dateFormatter->format($node_revision->getRevisionCreationTime())]);
+    return $this->t('Revision of %title from %date', [
+      '%title' => $node_revision->label(),
+      '%date' => $this->dateFormatter->format($node_revision->getRevisionCreationTime()),
+    ]);
   }
 
   /**
