@@ -10,7 +10,7 @@ entity.media.revision:
       media_revision:
         type: entity_revision:media
   requirements:
-    _entity_access: 'media_revision.view all revisions'
+    _entity_access: 'media_revision.view revision'
     media: \d+
 
 media.oembed_iframe:

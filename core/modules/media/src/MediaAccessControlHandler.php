@@ -34,7 +34,7 @@ class MediaAccessControlHandler extends EntityAccessControlHandler implements En
   public function __construct(EntityTypeInterface $entity_type, EntityTypeManagerInterface $entity_type_manager = NULL) {
     parent::__construct($entity_type);
     if (!isset($entity_type_manager)) {
-      @trigger_error('The $entity_type_manager parameter is deprecated in Drupal 9.1.0 and will be required in 10.0.0.', E_USER_DEPRECATED);
+      @trigger_error('Calling ' . __METHOD__ . '() without the $entity_type_manager argument is deprecated in drupal:9.3.0 and will be required in drupal:10.0.0. See https://www.drupal.org/node/3214171', E_USER_DEPRECATED);
       $entity_type_manager = \Drupal::entityTypeManager();
     }
     $this->entityTypeManager = $entity_type_manager;
