@@ -178,7 +178,9 @@ class MediaAccessControlHandler extends EntityAccessControlHandler implements En
    *   The number of revisions in the default language.
    */
   protected function countDefaultLanguageRevisions(MediaInterface $media) {
-    $count = $this->entityTypeManager->getStorage($media->getEntityTypeId())->getQuery()
+    $count = $this->entityTypeManager->getStorage($media->getEntityTypeId())
+      ->getQuery()
+      ->accessCheck(FALSE)
       ->allRevisions()
       ->condition($this->entityType->getKey('id'), $media->id())
       ->condition($this->entityType->getKey('default_langcode'), 1)
