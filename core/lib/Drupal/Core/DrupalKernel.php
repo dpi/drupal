@@ -18,7 +18,6 @@ use Drupal\Core\DependencyInjection\YamlFileLoader;
 use Drupal\Core\Extension\ExtensionDiscovery;
 use Drupal\Core\File\MimeType\MimeTypeGuesser;
 use Drupal\Core\Http\InputBag;
-use Drupal\Core\Http\KernelEvent;
 use Drupal\Core\Http\TrustedHostsRequestFactory;
 use Drupal\Core\Installer\InstallerKernel;
 use Drupal\Core\Installer\InstallerRedirectTrait;
@@ -39,10 +38,6 @@ use Symfony\Component\HttpFoundation\InputBag as SymfonyInputBag;
 use TYPO3\PharStreamWrapper\Manager as PharStreamWrapperManager;
 use TYPO3\PharStreamWrapper\Behavior as PharStreamWrapperBehavior;
 use TYPO3\PharStreamWrapper\PharStreamWrapper;
-
-// @todo https://www.drupal.org/project/drupal/issues/3197482 Remove this class
-//   alias once Drupal is running Symfony 5.3 or higher.
-class_alias(KernelEvent::class, 'Symfony\Component\HttpKernel\Event\KernelEvent', TRUE);
 
 /**
  * The DrupalKernel class is the core of Drupal itself.
@@ -1238,7 +1233,7 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
       $path = 'core/lib/Drupal/' . $parent_directory;
       $parent_namespace = 'Drupal\\' . $parent_directory;
       foreach (new \DirectoryIterator($this->root . '/' . $path) as $component) {
-        /** @var $component \DirectoryIterator */
+        /** @var \DirectoryIterator $component */
         $pathname = $component->getPathname();
         if (!$component->isDot() && $component->isDir() && (
           is_dir($pathname . '/Plugin') ||
