@@ -38,9 +38,9 @@ class NodeRevisionPermissionsTest extends NodeTestBase {
    * @var array
    */
   protected $map = [
-    'view' => 'view all revisions',
-    'update' => 'revert all revisions',
-    'delete' => 'delete all revisions',
+    'view revision' => 'view all revisions',
+    'revert revision' => 'revert all revisions',
+    'delete revision' => 'delete all revisions',
   ];
 
   /**
@@ -49,9 +49,9 @@ class NodeRevisionPermissionsTest extends NodeTestBase {
    * @var array
    */
   protected $typeMap = [
-    'view' => 'view page revisions',
-    'update' => 'revert page revisions',
-    'delete' => 'delete page revisions',
+    'view revision' => 'view page revisions',
+    'revert revision' => 'revert page revisions',
+    'delete revision' => 'delete page revisions',
   ];
 
   protected function setUp(): void {
@@ -117,7 +117,6 @@ class NodeRevisionPermissionsTest extends NodeTestBase {
 
     $permutations = $this->generatePermutations($parameters);
 
-    $node_revision_access = \Drupal::service('access_check.node.revision');
     $vids = \Drupal::entityQuery('node')
       ->allRevisions()
       ->accessCheck(FALSE)
@@ -125,12 +124,12 @@ class NodeRevisionPermissionsTest extends NodeTestBase {
       ->execute();
     foreach ($permutations as $case) {
       // Skip this test if there are no revisions for the node.
-      if (!($revision->isDefaultRevision() && (count($vids) == 1 || $case['op'] == 'update' || $case['op'] == 'delete'))) {
+      if (!($revision->isDefaultRevision() && (count($vids) == 1 || $case['op'] == 'revert revision' || $case['op'] == 'delete revision'))) {
         if (!empty($case['account']->is_admin) || $case['account']->hasPermission($this->map[$case['op']])) {
-          $this->assertTrue($node_revision_access->checkAccess($revision, $case['account'], $case['op']), "{$this->map[$case['op']]} granted.");
+          $this->assertTrue($revision->access($case['op'], $case['account']), "{$this->map[$case['op']]} granted.");
         }
         else {
-          $this->assertFalse($node_revision_access->checkAccess($revision, $case['account'], $case['op']), "{$this->map[$case['op']]} not granted.");
+          $this->assertFalse($revision->access($case['op'], $case['account']), "{$this->map[$case['op']]} not granted.");
         }
       }
     }
@@ -138,7 +137,7 @@ class NodeRevisionPermissionsTest extends NodeTestBase {
     // Test that access is FALSE for a node administrator with an invalid $node
     // or $op parameters.
     $admin_account = $accounts['admin'];
-    $this->assertFalse($node_revision_access->checkAccess($revision, $admin_account, 'invalid-op'), 'NodeRevisionAccessCheck() returns FALSE with an invalid op.');
+    $this->assertFalse($revision->access('invalid-op', $admin_account), 'NodeAccessControlHandler() returns FALSE with an invalid op.');
   }
 
   /**
@@ -170,7 +169,6 @@ class NodeRevisionPermissionsTest extends NodeTestBase {
     $revision = $this->nodeRevisions['page'][1];
 
     $permutations = $this->generatePermutations($parameters);
-    $node_revision_access = \Drupal::service('access_check.node.revision');
     $vids = \Drupal::entityQuery('node')
       ->allRevisions()
       ->accessCheck(FALSE)
@@ -178,12 +176,12 @@ class NodeRevisionPermissionsTest extends NodeTestBase {
       ->execute();
     foreach ($permutations as $case) {
       // Skip this test if there are no revisions for the node.
-      if (!($revision->isDefaultRevision() && (count($vids) == 1 || $case['op'] == 'update' || $case['op'] == 'delete'))) {
+      if (!($revision->isDefaultRevision() && (count($vids) == 1 || $case['op'] == 'revert revision' || $case['op'] == 'delete revision'))) {
         if (!empty($case['account']->is_admin) || $case['account']->hasPermission($this->typeMap[$case['op']])) {
-          $this->assertTrue($node_revision_access->checkAccess($revision, $case['account'], $case['op']), "{$this->typeMap[$case['op']]} granted.");
+          $this->assertTrue($revision->access($case['op'], $case['account']), "{$this->typeMap[$case['op']]} granted.");
         }
         else {
-          $this->assertFalse($node_revision_access->checkAccess($revision, $case['account'], $case['op']), "{$this->typeMap[$case['op']]} not granted.");
+          $this->assertFalse($revision->access($case['op'], $case['account']), "{$this->typeMap[$case['op']]} not granted.");
         }
       }
     }
@@ -192,7 +190,7 @@ class NodeRevisionPermissionsTest extends NodeTestBase {
     $revision = $this->nodeRevisions['article'][1];
 
     foreach ($permutations as $case) {
-      $this->assertFalse($node_revision_access->checkAccess($revision, $case['account'], $case['op']), "{$this->typeMap[$case['op']]} did not grant revision permission for articles.");
+      $this->assertFalse($revision->access($case['op'], $case['account']), "{$this->typeMap[$case['op']]} did not grant revision permission for articles.");
     }
   }
 
