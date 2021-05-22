@@ -30,6 +30,11 @@ class NodeRevisionAccessCheck implements AccessInterface {
    *   The entity type manager.
    */
   public function __construct(EntityTypeManagerInterface $entity_type_manager) {
+    // The access check provider create an instance for each access handler so
+    // only trigger deprecation exception for the extended classes.
+    if (static::class !== self::class) {
+      @trigger_error('NodeRevisionAccessCheck is deprecated in drupal:9.3.0 and will be removed before drupal:10.0.0. Use "_entity_access" requirement with relevant operation instead. See https://www.drupal.org/node/3043321', E_USER_DEPRECATED);
+    }
     $this->nodeStorage = $entity_type_manager->getStorage('node');
   }
 
