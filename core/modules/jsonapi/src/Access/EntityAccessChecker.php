@@ -197,7 +197,7 @@ class EntityAccessChecker {
     switch ($entity_type->id()) {
       case 'node':
       case 'media':
-        $access = $entity->access('view all revisions', $account, TRUE)->cachePerPermissions()->addCacheableDependency($entity);
+        $access = $entity->access('view all revisions', $account, TRUE);
         break;
 
       default:
