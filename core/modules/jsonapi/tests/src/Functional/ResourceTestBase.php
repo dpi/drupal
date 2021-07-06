@@ -507,7 +507,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
   /**
    * The expected cache tags when checking revision responses.
-
+   *
    * @return string[]
    *   A set of cache tags.
    */
