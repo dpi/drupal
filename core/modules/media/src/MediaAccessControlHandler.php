@@ -56,8 +56,10 @@ class MediaAccessControlHandler extends EntityAccessControlHandler implements En
   protected function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
     $administerPermission = $this->entityType->getAdminPermission();
     /** @var \Drupal\media\MediaInterface $entity */
-    // Default revisions must be checked for 'view all revisions' operation,
-    // administer permission must not override it.
+    // Allow admin permission to override all operations except for 'view all
+    // revisions' so that the number of revisions is still checked and the
+    // revisions tab is still hidden for users with the admin permission when
+    // there is only 1 revision.
     if ($operation !== 'view all revisions' && $account->hasPermission($administerPermission)) {
       return AccessResult::allowed()->cachePerPermissions();
     }

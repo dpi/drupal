@@ -559,7 +559,7 @@ class MediaAccessControlHandlerTest extends MediaKernelTestBase {
   public function testMediaAccessControlHandlerDeprecation() {
     $this->expectDeprecation('Calling Drupal\media\MediaAccessControlHandler::__construct() without the $entity_type_manager argument is deprecated in drupal:9.3.0 and will be required in drupal:10.0.0. See https://www.drupal.org/node/3214171');
     $entity_type = $this->prophesize(EntityTypeInterface::class);
-    $entity_type->id()->willReturn(1);
+    $entity_type->id()->willReturn('media');
     new MediaAccessControlHandler($entity_type->reveal());
   }
 
