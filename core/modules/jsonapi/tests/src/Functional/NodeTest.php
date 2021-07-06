@@ -520,4 +520,11 @@ class NodeTest extends ResourceTestBase {
     $this->assertContains('user.node_grants:view', explode(' ', $response->getHeader('X-Drupal-Cache-Contexts')[0]));
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getExtraRevisionCacheTags() {
+    return $this->entity->type->entity->getCacheTags();
+  }
+
 }

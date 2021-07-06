@@ -506,6 +506,16 @@ abstract class ResourceTestBase extends BrowserTestBase {
   }
 
   /**
+   * The expected cache tags when checking revision responses.
+
+   * @return string[]
+   *   A set of cache tags.
+   */
+  protected function getExtraRevisionCacheTags() {
+    return [];
+  }
+
+  /**
    * The expected cache contexts for the GET/HEAD response of the test entity.
    *
    * @param array|null $sparse_fieldset
@@ -2947,13 +2957,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // object.
     $expected_document['data']['links']['latest-version']['href'] = $rel_latest_version_url->setAbsolute()->toString();
     $expected_document['data']['links']['working-copy']['href'] = $rel_working_copy_url->setAbsolute()->toString();
-    if ($entity instanceof NodeInterface) {
-      $prior_revision_expected_cache_tags = Cache::mergeTags($expected_cache_tags, $entity->type->entity->getCacheTags());
-      $this->assertResourceResponse(200, $expected_document, $actual_response, $prior_revision_expected_cache_tags, $expected_cache_contexts, FALSE, 'MISS');
-    }
-    else {
-      $this->assertResourceResponse(200, $expected_document, $actual_response, $expected_cache_tags, $expected_cache_contexts, FALSE, 'MISS');
-    }
+    $this->assertResourceResponse(200, $expected_document, $actual_response, Cache::mergeTags($expected_cache_tags, $this->getExtraRevisionCacheTags()), $expected_cache_contexts, FALSE, 'MISS');
 
     // Install content_moderation module.
     $this->assertTrue($this->container->get('module_installer')->install(['content_moderation'], TRUE), 'Installed modules.');
@@ -3117,26 +3121,14 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $expected_document['data']['links']['latest-version']['href'] = $rel_latest_version_url->setAbsolute()->toString();
     $expected_cache_tags = $this->getExpectedCacheTags();
     $expected_cache_contexts = $this->getExpectedCacheContexts();
-    if ($entity instanceof NodeInterface) {
-      $working_copy_expected_cache_tags = Cache::mergeTags($expected_cache_tags, $entity->type->entity->getCacheTags());
-      $this->assertResourceResponse(200, $expected_document, $actual_response, $working_copy_expected_cache_tags, $expected_cache_contexts, FALSE, 'MISS');
-    }
-    else {
-      $this->assertResourceResponse(200, $expected_document, $actual_response, $expected_cache_tags, $expected_cache_contexts, FALSE, 'MISS');
-    }
+    $this->assertResourceResponse(200, $expected_document, $actual_response, Cache::mergeTags($expected_cache_tags, $this->getExtraRevisionCacheTags()), $expected_cache_contexts, FALSE, 'MISS');
     // And the collection response should also have the latest revision.
     $actual_response = $this->request('GET', $rel_working_copy_collection_url, $request_options);
     $expected_response = static::getExpectedCollectionResponse([$entity], $rel_working_copy_collection_url->toString(), $request_options);
     $expected_collection_document = $expected_response->getResponseData();
     $expected_collection_document['data'] = [$expected_document['data']];
     $expected_cacheability = $expected_response->getCacheableMetadata();
-    if ($entity instanceof NodeInterface) {
-      $working_copy_collection_expected_cache_tags = Cache::mergeTags($expected_cacheability->getCacheTags(), $entity->type->entity->getCacheTags());
-      $this->assertResourceResponse(200, $expected_collection_document, $actual_response, $working_copy_collection_expected_cache_tags, $expected_cacheability->getCacheContexts(), FALSE, 'MISS');
-    }
-    else {
-      $this->assertResourceResponse(200, $expected_collection_document, $actual_response, $expected_cacheability->getCacheTags(), $expected_cacheability->getCacheContexts(), FALSE, 'MISS');
-    }
+    $this->assertResourceResponse(200, $expected_collection_document, $actual_response, Cache::mergeTags($expected_cacheability->getCacheTags(), $this->getExtraRevisionCacheTags()), $expected_cacheability->getCacheContexts(), FALSE, 'MISS');
 
     // Test relationship responses.
     // Fetch the prior revision's relationship URL.
